@@ -6,9 +6,9 @@ x y berechnen:
 n*n-Spielfeld, currentfield ^= Position in der Liste
 //Unser Spielfeld ist eine lange Liste (Länge:n*n)-> !Achtung, man fängt mit 0 an zu zählen
 //Bsp n = 30, currentfield = 30 -> x=0,y=1, n = 30, currentfield = 29 -> x=29,y=0
-//Um das zu Umgehen: 1 +
-int x = 1 + currentfield % n; //0^=Erste Splate, geht bis n
-int y = 1 + (currentfield-x)/n; //0^=Erste Zeile, geht bis n
+//Um das zu Umgehen: 1 + ?
+int x = currentfield % n; //0^=Erste Splate, geht bis n
+int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
 
 1).Feld: n*n, Kopf will nach a
  a) Aus der File CAbase das Überprüfen auf Nachbarn umwandeln.
