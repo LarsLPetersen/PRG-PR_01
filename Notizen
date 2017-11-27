@@ -1,0 +1,11 @@
+Mögliche Struktur von Snake:
+https://codereview.stackexchange.com/questions/66481/snake-game-in-c
+
+
+x y berechnen:
+n*n-Spielfeld, curentfield ^= Position in der Liste
+int x = currentfield % n; //1^=Erste Splate, geht bis n
+int y = (currentfield-x)/n; //1^=Erste Zeile, geht bis n
+
+1.Feld: n*n, Kopf will nach a
+ Wand bei 1 bis n (oben), n*n-n bis n*n (unten), 0n+1 1n+1 2n+1 ... bis n*n-1 (links), n 2n ... bis n*n (rechts)
