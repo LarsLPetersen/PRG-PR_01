@@ -4,7 +4,8 @@ https://codereview.stackexchange.com/questions/66481/snake-game-in-c
 
 x y berechnen:
 n*n-Spielfeld, currentfield ^= Position in der Liste
-//Unser Spielfeld ist eine lange Liste (Länge:n*n)->
+//Unser Spielfeld ist eine lange Liste (Länge:n*n)-> !Achtung, man fängt mit 0 an zu zählen
+//Bsp n = 30, currentfield = 30 -> x=0,y=1, n = 30, currentfield = 29 -> x=29,y=0
 int x = currentfield % n; //0^=Erste Splate, geht bis n
 int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
 
