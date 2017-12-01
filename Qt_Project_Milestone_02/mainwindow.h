@@ -27,7 +27,7 @@ public slots:
 private:
     Ui::MainWindow *ui;
     QColor currentColor;
-    GameWidget* game;
+    GameWidget *game;
 };
 
 #endif // MAINWINDOW_H

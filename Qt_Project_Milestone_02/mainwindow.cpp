@@ -9,6 +9,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -18,11 +19,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     /* game choices */
-    ui->modeControl->addItem("Classic Life");
-    ui->modeControl->addItem("Snake");
+    ui->universeModeControl->addItem("Classic Life");
+    ui->universeModeControl->addItem("Snake");
 
     /*cell mode choices*/
-    ui->cellsMode->addItem("Classic");
+    ui->cellModeControl->addItem("Classic");
 
     /* color icons for color buttons */
     QPixmap icon(16, 16);
@@ -32,22 +33,22 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /* connecting signals to slots */
     // game control buttons
-    connect(ui->startButton, SIGNAL(clicked()), game,SLOT(startGame()));
-    connect(ui->stopButton, SIGNAL(clicked()), game,SLOT(stopGame()));
-    connect(ui->clearButton, SIGNAL(clicked()), game,SLOT(clear()));
+    connect(ui->startButton, SIGNAL(clicked()), game, SLOT(startGame()));
+    connect(ui->stopButton, SIGNAL(clicked()), game, SLOT(stopGame()));
+    connect(ui->clearButton, SIGNAL(clicked()), game, SLOT(clearGame()));
 
     // spin boxes
-    connect(ui->iterationInterval, SIGNAL(valueChanged(int)), game, SLOT(setInterval(int)));
-    connect(ui->cellsControl, SIGNAL(valueChanged(int)), game, SLOT(setCellNumber(int)));
+    connect(ui->intervalControl, SIGNAL(valueChanged(int)), game, SLOT(setInterval(int)));
+    connect(ui->universeSizeControl, SIGNAL(valueChanged(int)), game, SLOT(setUniverseSize(int)));
 
     // combo boxes
-    connect(ui->modeControl, SIGNAL(currentIndexChanged(int)), game, SLOT(setMode(int)));
-    connect(ui->cellsMode, SIGNAL(currentIndexChanged(int)), game, SLOT(setCellMode(int)));
+    connect(ui->universeModeControl, SIGNAL(currentIndexChanged(int)), game, SLOT(setUniverseMode(int)));
+    connect(ui->cellModeControl, SIGNAL(currentIndexChanged(int)), game, SLOT(setCellMode(int)));
 
     // when one of the cells has been changed => lock button "Universe Size"
-    connect(game, SIGNAL(environmentChanged(bool)),ui->cellsControl, SLOT(setDisabled(bool)));
+    connect(game, SIGNAL(environmentChanged(bool)), ui->universeSizeControl, SLOT(setDisabled(bool)));
     // when game over - activate button "Universe Size"
-    connect(game, SIGNAL(gameEnds(bool)),ui->cellsControl, SLOT(setEnabled(bool)));
+    connect(game, SIGNAL(gameEnds(bool)), ui->universeSizeControl, SLOT(setEnabled(bool)));
 
     // color choice buttons
     connect(ui->colorSelectButton, SIGNAL(clicked()), this, SLOT(selectMasterColor()));
@@ -59,15 +60,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /* stretch layout for better looks */
     ui->mainLayout->setStretchFactor(ui->gameLayout, 8);
-    ui->mainLayout->setStretchFactor(ui->setLayout, 3);
+    ui->mainLayout->setStretchFactor(ui->settingsLayout, 3);
 
     /* add gamewidget to gameLayout */
     ui->gameLayout->addWidget(game);
 }
 
+
 MainWindow::~MainWindow() {
     delete ui;
 }
+
 
 void MainWindow::saveGame() {
     /*
@@ -92,20 +95,21 @@ void MainWindow::saveGame() {
         return;
     }
 
-    QString s = QString::number(game->cellNumber()) + "\n";
+    QString s = QString::number(game->getUniverseSize()) + "\n";
     file.write(s.toUtf8());
-    file.write(game->dump().toUtf8());
+    file.write(game->dumpGame().toUtf8());
 
-    QColor color = game->masterColor();
+    QColor color = game->getMasterColor();
     QString buffer = QString::number(color.red()) + " " +
                      QString::number(color.green()) + " " +
                      QString::number(color.blue()) + "\n";
     file.write(buffer.toUtf8());
     buffer.clear();
-    buffer = QString::number(ui->iterationInterval->value()) + "\n";
+    buffer = QString::number(ui->intervalControl->value()) + "\n";
     file.write(buffer.toUtf8());
     file.close();
 }
+
 
 void MainWindow::loadGame() {
     /*
@@ -133,9 +137,9 @@ void MainWindow::loadGame() {
 
     int stream_value;
     file_input_stream >> stream_value;
-    ui->cellsControl->setValue(stream_value);
+    ui->universeSizeControl->setValue(stream_value);
 
-    game->setCellNumber(stream_value);
+    game->setUniverseSize(stream_value);
     QString dump = "";
 
     for (int k = 0; k != stream_value; k++) {
@@ -143,7 +147,7 @@ void MainWindow::loadGame() {
         file_input_stream >> tmp;
         dump.append(tmp + "\n");
     }
-    game->setDump(dump);
+    game->reconstructGame(dump);
 
     /* import the (rgb) cell color */
     int r, g, b;
@@ -159,9 +163,10 @@ void MainWindow::loadGame() {
 
     /* import iteration interval */
     file_input_stream >> r;
-    ui->iterationInterval->setValue(r);
+    ui->intervalControl->setValue(r);
     game->setInterval(r);
 }
+
 
 void MainWindow::selectMasterColor() {
     /* set cell color to color chosen from color dialog */
@@ -177,6 +182,7 @@ void MainWindow::selectMasterColor() {
     ui->colorSelectButton->setIcon(QIcon(icon));
     ui->colorRandomButton->setIcon(QIcon(icon));
 }
+
 
 void MainWindow::selectRandomColor() {
     /* generate random rgb values */
@@ -197,6 +203,7 @@ void MainWindow::selectRandomColor() {
     ui->colorRandomButton->setIcon(QIcon(icon));
     ui->colorSelectButton->setIcon(QIcon(icon));
 }
+
 
 void MainWindow::goGame() {
     /*

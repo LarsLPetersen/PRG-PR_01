@@ -186,7 +186,4 @@ inline void CAbase::WorldEvolutionLife()
 }
 
 
-
-
-
 #endif // CABASE_H
