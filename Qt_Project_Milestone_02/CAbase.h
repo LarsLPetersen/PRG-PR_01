@@ -12,19 +12,17 @@ public:
         Ny(10),
         Nx(10),
         nochanges(false)
-    {
-        resetWorldSize(Nx, Ny, 1);
-    }
+        { resetWorldSize(Nx, Ny, 1); }
 
     CAbase(int nx, int ny) :
         Ny(ny),
         Nx(nx),
         nochanges(false)
-    {
-        resetWorldSize(Nx, Ny, 1);
+        { resetWorldSize(Nx, Ny, 1); }
+
+    ~CAbase() {
     }
 
-    void resetWorldSize(int nx, int ny, bool del = 0);
 
     int getNy() {
         return Ny;
@@ -35,24 +33,46 @@ public:
     }
 
     int getColor(int x, int y) {
-        return worldColor[y*(Nx+2)+x];
+        // get color from cell x, y
+        return worldColor[y * (Nx + 2) + x];
     }
 
-    void setColor(int x, int y, int c);
-    void setColorEvo(int x, int y, int c);
+    void setColor(int x, int y, int c) {
+        // set color c into cell x, y in current color universe
+        worldColor[y * (Nx + 2) + x] = c;
+    }
+
+    void setColorEvo(int x, int y, int c){
+        // set color c into cell with coordinates x,y in evolution color universe
+        worldColorNew[y * (Nx + 2) + x] = c;
+    }
 
     int getLife(int x, int y) {
-        return worldLife[y*(Nx+2)+x];
+        return worldLife[y * (Nx + 2) + x];
     }
 
-    void worldEvolutionLife();
-    void setLife(int x, int y, int l);
-    void setLifeEvo(int x, int y, int l);
-    void setAlive(int x, int y, int i);
-    void setAliveEvo(int x, int y, int i);
+    void setLife(int x, int y, int l) {
+        // set lifetime l into cell with coordinates x,y in current color universe
+        worldLife[y * (Nx + 2) + x] = l;
+    }
+
+    void setLifeEvo(int x, int y, int l) {
+        // set lifetime l into cell with coordinates x,y in evolution color universe
+        worldLifeNew[y * (Nx + 2) + x] = l;
+    }
+
+    void setAlive(int x, int y, int i) {
+        // Set number i into cell with coordinates x,y in current universe
+        world[y * (Nx + 2) + x] = i;
+    }
+
+    void setAliveEvo(int x, int y, int i) {
+        // set number i into cell with coordinates x,y in evolution universe
+        worldNew[y * (Nx + 2) + x] = i;
+    }
 
     int isAlive(int x, int y) {
-        return world[y*(Nx+2)+x];
+        return world[y * (Nx + 2) + x];
     }
 
     bool isNotChanged() {
@@ -61,8 +81,10 @@ public:
 
     int cellEvolutionLife(int x, int y);
 
-    ~CAbase() {
-    }
+    void resetWorldSize(int nx, int ny, bool del = 0);
+
+    void worldEvolutionLife();
+
 
 private:
     int Ny;
@@ -77,43 +99,6 @@ private:
 };
 
 
-inline void CAbase::setAlive(int x, int y, int i) {
-    // Set number i into cell with coordinates x,y in current universe
-    world[y * (Nx + 2) + x] = i;
-}
-
-
-inline void CAbase::setAliveEvo(int x, int y, int i) {
-    // set number i into cell with coordinates x,y in evolution universe
-    worldNew[y * (Nx + 2) + x] = i;
-}
-
-
-inline void CAbase::setColor(int x, int y, int c) {
-    // set color c into cell with coordinates x,y in current color universe
-    worldColor[y * (Nx + 2) + x] = c;
-}
-
-
-inline void CAbase::setColorEvo(int x, int y, int c) {
-    // set color c into cell with coordinates x,y in evolution color universe
-    worldColorNew[y * (Nx + 2) + x] = c;
-}
-
-
-inline void CAbase::setLife(int x, int y, int l) {
-    // set lifetime l into cell with coordinates x,y in current color universe
-    worldLife[y * (Nx + 2) + x] = l;
-}
-
-
-inline void CAbase::setLifeEvo( int x, int y, int l) {
-    // set lifetime l into cell with coordinates x,y in evolution color universe
-    worldLifeNew[y * (Nx + 2) + x] = l;
-}
-
-
-
 // Game "Life" rules:
 //
 // Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
@@ -122,7 +107,7 @@ inline void CAbase::setLifeEvo( int x, int y, int l) {
 // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 
 
-inline int CAbase::cellEvolutionLife( int x, int y ) {
+inline int CAbase::cellEvolutionLife(int x, int y) {
     // Classic Game of Life. Evolution rules for every cell. Changing only cell (x, y) for every step
 
     int n_sum = 0;
@@ -183,6 +168,7 @@ inline void CAbase::resetWorldSize(int nx, int ny, bool del) {
     worldLifeNew = new int[(Ny + 2) * (Nx + 2) + 1];
 
     for (int i = 0; i <= (Ny + 2) * (Nx + 2); i++) {
+        // set border cells to -1
         if ( (i < (Nx + 2)) || (i >= (Ny + 1) * (Nx + 2)) || (i % (Nx + 2) == 0) || (i % (Nx + 2) == (Nx + 1)) ) {
             world[i] = -1;
             worldNew[i] = -1;
@@ -220,15 +206,16 @@ inline void CAbase::worldEvolutionLife() {
     }
 
     nochanges = true;
-
-    for (int ix = 1; ix <= Nx; ix++) {           // Copy new state to current universe
+    // Copy new state to current universe
+    for (int ix = 1; ix <= Nx; ix++) {
         for (int iy = 1; iy <= Ny; iy++) {
             if (world[iy * (Nx + 2) + ix] != worldNew[iy * (Nx + 2) + ix]) {
                 nochanges = false;
             }
             world[iy * (Nx + 2) + ix] = worldNew[iy * (Nx + 2) + ix];
         }
-    }                                 // if nochanges == true, there are no evolution and we reached final stare of universe
+    }
+    // if nochanges == true, there is no evolution and the universe remains constant
 }
 
 
