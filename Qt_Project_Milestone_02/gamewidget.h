@@ -6,8 +6,8 @@
 #include "CAbase.h"
 
 
-class GameWidget : public QWidget
-{
+class GameWidget : public QWidget {
+
     Q_OBJECT
 
 public:

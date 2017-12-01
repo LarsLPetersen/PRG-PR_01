@@ -24,7 +24,7 @@ GameWidget::GameWidget(QWidget *parent) :
     timer->setInterval(300);
     timerColor->setInterval(50);
     masterColor = "#000";
-    ca1.ResetWorldSize(universeSize, universeSize);
+    ca1.resetWorldSize(universeSize, universeSize);
     connect(timer, SIGNAL(timeout()), this, SLOT(newGeneration()));
     connect(timerColor, SIGNAL(timeout()), this, SLOT(newGenerationColor()));
 
@@ -50,13 +50,13 @@ void GameWidget::stopGame() {
 
 
 void GameWidget::clearGame() {
-    for(int k = 1; k <= universeSize; k++) {
-        for(int j = 1; j <= universeSize; j++) {
-            ca1.SetAlive(j,k,0);
+    for (int k = 1; k <= universeSize; k++) {
+        for (int j = 1; j <= universeSize; j++) {
+            ca1.setAlive(j, k, 0);
         }
     }
     gameEnds(true);
-    ca1.ResetWorldSize(universeSize, universeSize);
+    ca1.resetWorldSize(universeSize, universeSize);
     //randomMode = 0;
     update();
 }
@@ -70,7 +70,7 @@ int GameWidget::getUniverseSize() {
 void GameWidget::setUniverseSize(const int &s) {
     /* set number of the cells in one row */
     universeSize = s;
-    ca1.ResetWorldSize(s,s);
+    ca1.resetWorldSize(s, s);
     update();
 }
 
@@ -105,7 +105,7 @@ QString GameWidget::dumpGame() {
     QString master = "";
     for (int k = 1; k <= universeSize; k++) {
         for (int j = 1; j <= universeSize; j++) {
-            if (ca1.IsAlive(j, k) == 1) {
+            if (ca1.isAlive(j, k) == 1) {
                 temp = '*';
             } else {
                 temp = 'o';
@@ -123,7 +123,7 @@ void GameWidget::reconstructGame(const QString &data) {
     int current = 0;
     for (int k = 1; k <= universeSize; k++) {
         for (int j = 1; j <= universeSize; j++) {
-           if (data[current] == '*') ca1.SetAlive(j,k,1);
+           if (data[current] == '*') ca1.setAlive(j, k, 1);
             current++;
         }
         current++;
@@ -149,10 +149,10 @@ void GameWidget::newGeneration() {
     if (generations < 0)
         generations++;
 
-    ca1.WorldEvolutionLife();
+    ca1.worldEvolutionLife();
     update();
 
-    if (ca1.IsNotChanged()) {
+    if (ca1.isNotChanged()) {
         QMessageBox::information(this,
                                  tr("Game lost sense"),
                                  tr("The End. Now game finished because all the next generations will be the same."),
@@ -174,6 +174,7 @@ void GameWidget::newGeneration() {
     }
 }
 
+
 void GameWidget::newGenerationColor() {
     /* Start the evolution of universe and update the game field for "Cyclic cellular automata" mode */
     if (generations < 0)
@@ -193,11 +194,13 @@ void GameWidget::newGenerationColor() {
     }
 }
 
+
 void GameWidget::paintEvent(QPaintEvent *) {
     QPainter p(this);
     paintGrid(p);
     paintUniverse(p);
 }
+
 
 void GameWidget::mousePressEvent(QMouseEvent *e) {
     emit environmentChanged(true);
@@ -208,18 +211,19 @@ void GameWidget::mousePressEvent(QMouseEvent *e) {
 
     int mode[9] = {1, 3, 6, 4, 2, 8, 9, 10, 11};
 
-    if (ca1.IsAlive(j, k) != 0) {
-        ca1.SetAlive(j, k, 0);
-        ca1.SetLife(j, k, 0);
+    if (ca1.isAlive(j, k) != 0) {
+        ca1.setAlive(j, k, 0);
+        ca1.setLife(j, k, 0);
     }
     else {
-        ca1.SetAlive(j, k, mode[cellMode]);
+        ca1.setAlive(j, k, mode[cellMode]);
         if (mode[cellMode] == 9 || mode[cellMode] == 10)
-            ca1.SetLife(j, k, 50); // lifeTime = 50
+            ca1.setLife(j, k, 50); // lifeTime = 50
     }
 
     update();
 }
+
 
 void GameWidget::mouseMoveEvent(QMouseEvent *e)
 {
@@ -230,10 +234,10 @@ void GameWidget::mouseMoveEvent(QMouseEvent *e)
 
     int mode[9] = {1, 3, 6, 4, 2, 8, 9, 10, 11};
 
-    if(ca1.IsAlive(j, k) == 0){
-        ca1.SetAlive(j, k, mode[cellMode]);
+    if(ca1.isAlive(j, k) == 0){
+        ca1.setAlive(j, k, mode[cellMode]);
         if (mode[cellMode] == 9 || mode[cellMode] == 10)
-            ca1.SetLife(j, k, 50); // lifetime = 50
+            ca1.setLife(j, k, 50); // lifetime = 50
         update();
     }
 }
@@ -259,19 +263,19 @@ void GameWidget::paintUniverse(QPainter &p) {
     double cellHeight = (double) height()/universeSize;
     for (int k=1; k <= universeSize; k++) {
         for (int j=1; j <= universeSize; j++) {
-            if (ca1.IsAlive(j, k) != 0) {
+            if (ca1.isAlive(j, k) != 0) {
                 qreal left = (qreal) (cellWidth * j - cellWidth); // margin from left
                 qreal top  = (qreal) (cellHeight * k - cellHeight); // margin from top
                 QRectF r(left, top, (qreal) cellWidth, (qreal) cellHeight);
                 if (0 && universeMode != 7) { // randomMode = 0
-                    p.fillRect(r, setColor(ca1.GetColor(j, k))); //fill cell with brush from random mode
+                    p.fillRect(r, setColor(ca1.getColor(j, k))); //fill cell with brush from random mode
                  }
                 else {
-                    if (ca1.IsAlive(j, k) == 1 || universeMode == 7) {
+                    if (ca1.isAlive(j, k) == 1 || universeMode == 7) {
                         p.fillRect(r, QBrush(masterColor)); // fill cell with brush of main color
                     }
                     else {
-                        p.fillRect(r, setColor(ca1.IsAlive(j, k))); //fill cell with brush of cell type
+                        p.fillRect(r, setColor(ca1.isAlive(j, k))); //fill cell with brush of cell type
                     }
                 }
             }
