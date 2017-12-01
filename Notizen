@@ -14,3 +14,30 @@ int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
  a) Aus der File CAbase das Überprüfen auf Nachbarn umwandeln.
  b) Wand nach: 1 bis n (oben), n*n-n bis n*n (unten), 0n+1 1n+1 2n+1 ... bis n*n-1 (links), n 2n ... bis n*n (rechts)
  -> x<0, x>n-1, y<0, y>n-1
+
+Spielfeld
+nicht kleiner als 10 x 10 (Nutzer) und nicht groesser als 400 x 400
+Nutzereingabe n -> Spielfeldgroesse n+2 (Raender links, rechts, oben, unten)
+Randwert = -1
+Essen = 5
+Head = 10
+Body/Tail = 10++
+
+Initialisierung
+Feld erstellen (default 50 - Nutzer)
+Schlange erstellen (unten in der Mitte, senkrecht, Bewegung = 8)
+    Laenge 3
+1 Nahrung zufaellig ausserhalb der Schlange erzeugen
+
+
+Evolution
+default evolutionsspanne 500ms
+1. ausgehend vom head die richtungscodes in array einfuegen
+2. letzten richtungsinput auslesen und pruefen (erlaubt, nicht erlaubt)
+3. richtungsinput auswerten
+    tod (wand, koerper)
+    nicht-tod (freies feld, futter)
+4. nacharbeiten im nicht-tod fall
+    schlange bewegen ausgehend vom head
+    futteraufnahme ggf. beruecksichtigen
+    
