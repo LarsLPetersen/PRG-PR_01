@@ -18,7 +18,7 @@ int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
  CAbase.h:
  - Das Hauptspiel + Schleife als func
  -Zugriff auf einzelne Zellen
- -CAbase::resetWorldSize
+ -CAbase::resetWorldSize, macht schon border -1
  -> Herz, da packen wir Snake spielregeln etc rein, neue Funktionen
  
  gamewidget.cpp:
@@ -27,8 +27,11 @@ int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
  -checkt nach Evolve->win/lose?
  -paint grid
  -mauseeinträge
+ -paintuniverse(enthält schon snake value?)
  ->Grafische Darstellung, Win/Lose Bedinung anpassen, rest kaum veränderung
  
+ glaube -1 ist schon implementiert(größtenteils)
+ printgrid: beachtet schon ränder
  ---
 
 Spielfeld
