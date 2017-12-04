@@ -1,6 +1,6 @@
 Mögliche Struktur von Snake:
 https://codereview.stackexchange.com/questions/66481/snake-game-in-c
-
+http://www.cplusplus.com/articles/3U75fSEw/
 
 x y berechnen:
 n*n-Spielfeld, currentfield ^= Position in der Liste
@@ -15,12 +15,19 @@ int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
  b) Wand nach: 1 bis n (oben), n*n-n bis n*n (unten), 0n+1 1n+1 2n+1 ... bis n*n-1 (links), n 2n ... bis n*n (rechts)
  -> x<0, x>n-1, y<0, y>n-1
  
+ Key:
+ char key;
+ key = _getch(); //Now this click is key
+ switch( key ) ->hier jetzt abfragen ob 180° wende
+ case 'w', case 'a', case 's', case 'd'
+ 
+ -----------------------------------------------------------------------------------------
  CAbase.h:
  -Die Mutter von gamewidget.cpp
  -Die Regeln des Hauptspiels + Schleife als func L.110++
  -Zugriff auf einzelne Zellen
  -CAbase::resetWorldSize, macht schon border -1
- -> Herz, da packen wir Snake spielregeln etc rein, neue Funktionen
+ -> Herz, da packen wir Snake spielregeln etc rein, neue Funktionen für Snakes
  
  gamewidget.cpp:
  -erstellt Universum! größe, für welches game(Auf variablen m),...
@@ -28,12 +35,16 @@ int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
  -checkt nach Evolve->win/lose? + !!Berechnet neues Universum L.147++
  -paint grid
  -mauseeinträge
- -paintuniverse(enthält schon snake value?)
+ -paintGrid(enthält schon Rand?)
+ -KeyPressEvent kommt hier rein
  ->Grafische Darstellung, Win/Lose Bedinung anpassen, rest kaum veränderung
+
  
  glaube -1 ist schon implementiert(größtenteils)
  printgrid: beachtet schon ränder
- ---
+ nochanges = true -> Tot, könnte man machen
+ was ist: world/New, worldColor/New, worldLife/New
+ -----------------------------------------------------------------------------------------
 
 Spielfeld
 nicht kleiner als 10 x 10 (Nutzer) und nicht groesser als 400 x 400
