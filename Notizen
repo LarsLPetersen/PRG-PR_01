@@ -16,7 +16,8 @@ int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
  -> x<0, x>n-1, y<0, y>n-1
  
  CAbase.h:
- - Das Hauptspiel + Schleife als func
+ -Die Mutter von gamewidget.cpp
+ -Die Regeln des Hauptspiels + Schleife als func L.110++
  -Zugriff auf einzelne Zellen
  -CAbase::resetWorldSize, macht schon border -1
  -> Herz, da packen wir Snake spielregeln etc rein, neue Funktionen
@@ -24,7 +25,7 @@ int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
  gamewidget.cpp:
  -erstellt Universum! größe, für welches game(Auf variablen m),...
  -start/stop/leeren
- -checkt nach Evolve->win/lose?
+ -checkt nach Evolve->win/lose? + !!Berechnet neues Universum L.147++
  -paint grid
  -mauseeinträge
  -paintuniverse(enthält schon snake value?)
