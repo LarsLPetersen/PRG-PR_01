@@ -14,6 +14,22 @@ int y = (currentfield-x)/n; //0^=Erste Zeile, geht bis n
  a) Aus der File CAbase das Überprüfen auf Nachbarn umwandeln.
  b) Wand nach: 1 bis n (oben), n*n-n bis n*n (unten), 0n+1 1n+1 2n+1 ... bis n*n-1 (links), n 2n ... bis n*n (rechts)
  -> x<0, x>n-1, y<0, y>n-1
+ 
+ CAbase.h:
+ - Das Hauptspiel + Schleife als func
+ -Zugriff auf einzelne Zellen
+ -CAbase::resetWorldSize
+ -> Herz, da packen wir Snake spielregeln etc rein, neue Funktionen
+ 
+ gamewidget.cpp:
+ -erstellt Universum! größe, für welches game(Auf variablen m),...
+ -start/stop/leeren
+ -checkt nach Evolve->win/lose?
+ -paint grid
+ -mauseeinträge
+ ->Grafische Darstellung, Win/Lose Bedinung anpassen, rest kaum veränderung
+ 
+ ---
 
 Spielfeld
 nicht kleiner als 10 x 10 (Nutzer) und nicht groesser als 400 x 400
