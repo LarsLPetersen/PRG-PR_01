@@ -117,15 +117,17 @@ void GameWidget::setCellMode(const int &m) {
 
 QString GameWidget::dumpGame() {
     /* dump current universe */
-    char temp;
+    QString temp;
+    //char temp;
     QString master = "";
     for (int k = 1; k <= universeSize; k++) {
         for (int j = 1; j <= universeSize; j++) {
-            if (ca1.getValue(j, k) == 1) {
-                temp = '*';
-            } else {
-                temp = 'o';
-            }
+            temp = (QString) ca1.getValue(j, k);
+//            if (ca1.getValue(j, k) == 1) {
+//                temp = '*';
+//            } else {
+//                temp = 'o';
+//            }
             master.append(temp);
         }
         master.append("\n");

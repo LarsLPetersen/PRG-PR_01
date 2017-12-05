@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QPixmap icon(16, 16);
     icon.fill(currentColor);
     ui->colorSelectButton->setIcon(QIcon(icon));
-    ui->colorRandomButton->setIcon(QIcon(icon));
+    //ui->colorRandomButton->setIcon(QIcon(icon));
 
     /* connecting signals to slots */
     // game control buttons
@@ -158,7 +158,7 @@ void MainWindow::loadGame() {
     /* display specific color as icon on color buttons */
     QPixmap icon(16, 16);
     icon.fill(currentColor);
-    ui->colorRandomButton->setIcon(QIcon(icon));
+    // ui->colorRandomButton->setIcon(QIcon(icon));
     ui->colorSelectButton->setIcon(QIcon(icon));
 
     /* import iteration interval */
@@ -200,7 +200,7 @@ void MainWindow::selectRandomColor() {
     /* display specific color as icon on color buttons */
     QPixmap icon(16, 16);
     icon.fill(color);
-    ui->colorRandomButton->setIcon(QIcon(icon));
+    //ui->colorRandomButton->setIcon(QIcon(icon));
     ui->colorSelectButton->setIcon(QIcon(icon));
 }
 
