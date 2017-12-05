@@ -33,7 +33,10 @@ public slots:
     int getUniverseSize(); // number of the cells in one row
     void setUniverseSize(const int &s); // set number of the cells in one row
 
+    int getUniverseMode();
     void setUniverseMode(const int &m); //set evolution mode
+
+    int getCellMode();
     void setCellMode(const int &m); //set cell mode
 
     int getInterval(); // interval between generations

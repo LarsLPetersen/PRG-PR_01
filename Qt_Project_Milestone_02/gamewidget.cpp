@@ -3,6 +3,7 @@
 #include <QMouseEvent>
 #include <QDebug>
 #include <QRectF>
+#include <QString>
 #include <QPainter>
 #include "QTime"
 #include <qmath.h>
@@ -52,7 +53,7 @@ void GameWidget::stopGame() {
 void GameWidget::clearGame() {
     for (int k = 1; k <= universeSize; k++) {
         for (int j = 1; j <= universeSize; j++) {
-            ca1.setAlive(j, k, 0);
+            ca1.setValue(j, k, 0);
         }
     }
     gameEnds(true);
@@ -87,9 +88,24 @@ void GameWidget::setUniverseSize(const int &s) {
 //}
 
 
+int GameWidget::getUniverseMode() {
+    return universeMode;
+}
+
+
 void GameWidget::setUniverseMode(const int &m) {
     /* set universe mode */
+    int old_m = GameWidget::getUniverseMode();
     universeMode = m;
+
+    if (old_m != m) {
+        GameWidget::clearGame();
+    }
+}
+
+
+int GameWidget::getCellMode() {
+    return cellMode;
 }
 
 
@@ -105,7 +121,7 @@ QString GameWidget::dumpGame() {
     QString master = "";
     for (int k = 1; k <= universeSize; k++) {
         for (int j = 1; j <= universeSize; j++) {
-            if (ca1.isAlive(j, k) == 1) {
+            if (ca1.getValue(j, k) == 1) {
                 temp = '*';
             } else {
                 temp = 'o';
@@ -123,7 +139,7 @@ void GameWidget::reconstructGame(const QString &data) {
     int current = 0;
     for (int k = 1; k <= universeSize; k++) {
         for (int j = 1; j <= universeSize; j++) {
-           if (data[current] == '*') ca1.setAlive(j, k, 1);
+           if (data[current] == '*') ca1.setValue(j, k, 1);
             current++;
         }
         current++;
@@ -149,14 +165,41 @@ void GameWidget::newGeneration() {
     if (generations < 0)
         generations++;
 
-    ca1.worldEvolutionLife();
+    switch (universeMode) {
+    case 0: // game of life
+        ca1.worldEvolutionLife();
+        break;
+    case 1: // snake
+        ca1.worldEvolutionLife();
+        break;
+    default:
+        break;
+    }
+
     update();
 
     if (ca1.isNotChanged()) {
-        QMessageBox::information(this,
-                                 tr("Game lost sense"),
-                                 tr("The End. Now game finished because all the next generations will be the same."),
-                                 QMessageBox::Ok);
+        const QString headlines[] = {"Game lost sense!", "Game over!"};
+        const QString details[] = {"The End. The game is over since the next generations will be the same.",
+                             "The End."};
+
+        QMessageBox msgBox;
+        switch (universeMode) {
+        case 0:
+            msgBox.setIcon(QMessageBox::Information);
+            msgBox.setText(headlines[0]);
+            msgBox.setInformativeText(details[0]);
+        break;
+
+        case 1:
+            msgBox.setIcon(QMessageBox::Information);
+            msgBox.setText(headlines[1]);
+            msgBox.setInformativeText(details[1]);
+
+        default:
+            break;
+        }
+        msgBox.exec();
         stopGame();
         gameEnds(true);
         return;
@@ -172,6 +215,7 @@ void GameWidget::newGeneration() {
                                  QMessageBox::Ok,
                                  QMessageBox::Cancel);
     }
+
 }
 
 
@@ -211,22 +255,23 @@ void GameWidget::mousePressEvent(QMouseEvent *e) {
 
     int mode[9] = {1, 3, 6, 4, 2, 8, 9, 10, 11};
 
-    if (ca1.isAlive(j, k) != 0) {
-        ca1.setAlive(j, k, 0);
-        ca1.setLife(j, k, 0);
-    }
-    else {
-        ca1.setAlive(j, k, mode[cellMode]);
-        if (mode[cellMode] == 9 || mode[cellMode] == 10)
-            ca1.setLife(j, k, 50); // lifeTime = 50
-    }
+    if (universeMode == 0) {
+        if (ca1.getValue(j, k) != 0) {
+            ca1.setValue(j, k, 0);
+            ca1.setLifetime(j, k, 0);
+        }
+        else {
+            ca1.setValue(j, k, mode[cellMode]);
+            if (mode[cellMode] == 9 || mode[cellMode] == 10)
+                ca1.setLifetime(j, k, 50); // lifeTime = 50
+        }
 
-    update();
+        update();
+    }
 }
 
 
-void GameWidget::mouseMoveEvent(QMouseEvent *e)
-{
+void GameWidget::mouseMoveEvent(QMouseEvent *e) {
     double cellWidth = (double) width()/universeSize;
     double cellHeight = (double) height()/universeSize;
     int k = floor(e->y()/cellHeight)+1;
@@ -234,11 +279,13 @@ void GameWidget::mouseMoveEvent(QMouseEvent *e)
 
     int mode[9] = {1, 3, 6, 4, 2, 8, 9, 10, 11};
 
-    if(ca1.isAlive(j, k) == 0){
-        ca1.setAlive(j, k, mode[cellMode]);
-        if (mode[cellMode] == 9 || mode[cellMode] == 10)
-            ca1.setLife(j, k, 50); // lifetime = 50
-        update();
+    if (universeMode == 0) {
+        if (ca1.getValue(j, k) == 0) {
+            ca1.setValue(j, k, mode[cellMode]);
+            if (mode[cellMode] == 9 || mode[cellMode] == 10)
+                ca1.setLifetime(j, k, 50); // lifetime = 50
+            update();
+        }
     }
 }
 
@@ -263,7 +310,7 @@ void GameWidget::paintUniverse(QPainter &p) {
     double cellHeight = (double) height()/universeSize;
     for (int k=1; k <= universeSize; k++) {
         for (int j=1; j <= universeSize; j++) {
-            if (ca1.isAlive(j, k) != 0) {
+            if (ca1.getValue(j, k) != 0) {
                 qreal left = (qreal) (cellWidth * j - cellWidth); // margin from left
                 qreal top  = (qreal) (cellHeight * k - cellHeight); // margin from top
                 QRectF r(left, top, (qreal) cellWidth, (qreal) cellHeight);
@@ -271,11 +318,11 @@ void GameWidget::paintUniverse(QPainter &p) {
                     p.fillRect(r, setColor(ca1.getColor(j, k))); //fill cell with brush from random mode
                  }
                 else {
-                    if (ca1.isAlive(j, k) == 1 || universeMode == 7) {
+                    if (ca1.getValue(j, k) == 1 || universeMode == 7) {
                         p.fillRect(r, QBrush(masterColor)); // fill cell with brush of main color
                     }
                     else {
-                        p.fillRect(r, setColor(ca1.isAlive(j, k))); //fill cell with brush of cell type
+                        p.fillRect(r, setColor(ca1.getValue(j, k))); //fill cell with brush of cell type
                     }
                 }
             }
