@@ -73,58 +73,123 @@ MainWindow::~MainWindow() {
 
 
 void MainWindow::saveGame() {
-    /*
-     *  ggf. anpassen an neue Datenstruktur und Speicherlogik
-     *
-     */
 
-    QString filename = QFileDialog::getSaveFileName(this,
-                                                    tr("Save current game"),
-                                                    QDir::homePath(),
-                                                    tr("Snake Game *.snake Files (*.snake)"));
-    if (filename.length() < 1)
-        return;
+    int uM = game->getUniverseMode();
+    QString filename, size, buffer;
+    QColor color;
+    QFile file;
 
-    QFile file(filename);
+    switch (uM) {
+    //
+    // game of life
+    //
+    case 0:
 
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QMessageBox::warning(this,
-                             tr("File Not Saved"),
-                             tr("For whatever reason the game could not be written to the chosen file."),
-                             QMessageBox::Ok);
-        return;
+        filename = QFileDialog::getSaveFileName(this, tr("Save current game"),
+                                                QDir::homePath(), tr("Game of Life *.game Files (*.game)"));
+        if (filename.length() < 1)
+            return;
+
+        file.setFileName(filename);
+
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            QMessageBox::warning(this,
+                                 tr("File Not Saved"),
+                                 tr("For whatever reason the game could not be written to the chosen file."),
+                                 QMessageBox::Ok);
+            return;
+        }
+
+        size = QString::number(game->getUniverseSize()) + "\n";
+        file.write(size.toUtf8());
+        file.write(game->dumpGame().toUtf8());
+
+        color = game->getMasterColor();
+        buffer = QString::number(color.red()) + " " +
+                         QString::number(color.green()) + " " +
+                         QString::number(color.blue()) + "\n";
+        file.write(buffer.toUtf8());
+        buffer.clear();
+        buffer = QString::number(ui->intervalControl->value()) + "\n";
+        file.write(buffer.toUtf8());
+        file.close();
+        break;
+
+    //
+    //  snake
+    //
+    case 1:
+        filename = QFileDialog::getSaveFileName(this, tr("Save current game"),
+                                                QDir::homePath(), tr("Snake *.snake Files (*.snake)"));
+        if (filename.length() < 1)
+            return;
+
+        file.setFileName(filename);
+
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            QMessageBox::warning(this,
+                                 tr("File Not Saved"),
+                                 tr("For whatever reason the game could not be written to the chosen file."),
+                                 QMessageBox::Ok);
+            return;
+        }
+
+        buffer = QString::number(game->getUniverseSize()) + "\n";
+
+        color = game->getMasterColor();
+        buffer += QString::number(color.red()) + " " +
+                  QString::number(color.green()) + " " +
+                  QString::number(color.blue()) + "\n";
+
+        buffer += QString::number(ui->intervalControl->value()) + "\n";
+
+        buffer += QString::number(game->getCA().snakeDirection) + "\n" +
+                  QString::number(game->getCA().snakeLength) + "\n" +
+                  QString::number(game->getCA().snakeAction) + "\n" +
+                  QString::number(game->getCA().positionHead.x) + " " + QString::number(game->getCA().positionHead.y) + "\n" +
+                  QString::number(game->getCA().positionTail.x) + " " + QString::number(game->getCA().positionTail.y) + "\n" +
+                  QString::number(game->getCA().positionFood.x) + " " + QString::number(game->getCA().positionFood.y) + "\n";
+        file.write(buffer.toUtf8());
+        buffer.clear();
+
+        file.write(game->dumpGame().toUtf8());
+        file.close();
+
+        break;
     }
-
-    QString s = QString::number(game->getUniverseSize()) + "\n";
-    file.write(s.toUtf8());
-    file.write(game->dumpGame().toUtf8());
-
-    QColor color = game->getMasterColor();
-    QString buffer = QString::number(color.red()) + " " +
-                     QString::number(color.green()) + " " +
-                     QString::number(color.blue()) + "\n";
-    file.write(buffer.toUtf8());
-    buffer.clear();
-    buffer = QString::number(ui->intervalControl->value()) + "\n";
-    file.write(buffer.toUtf8());
-    file.close();
 }
 
 
 void MainWindow::loadGame() {
-    /*
-     *  ggf. anpassen an neue Datenstruktur und Speicherlogik
-     *
-     */
 
     /* file dialog */
-    QString filename = QFileDialog::getOpenFileName(this,
-                                                    tr("Open saved game"),
-                                                    QDir::homePath(),
-                                                    tr("Snake Game File (*.snake)"));
+    int uM = game->getUniverseMode();
+    QString filename;
+    QFile file;
+
+    switch (uM) {
+    //
+    // game of life
+    //
+    case 0:
+        filename = QFileDialog::getOpenFileName(this, tr("Open saved game"),
+                                                QDir::homePath(), tr("Game of Life File (*.game)"));
+        break;
+    //
+    // snake
+    //
+    case 1:
+        filename = QFileDialog::getOpenFileName(this, tr("Open saved game"),
+                                                QDir::homePath(), tr("Snake File (*.snake)"));
+        break;
+
+    default:
+        break;
+    }
+
     if (filename.length() < 1)
         return;
-    QFile file(filename);
+    file.setFileName(filename);
 
     if (!file.open(QIODevice::ReadOnly)){
         QMessageBox::warning(this,
@@ -133,38 +198,82 @@ void MainWindow::loadGame() {
                              QMessageBox::Ok);
         return;
     }
+
     QTextStream file_input_stream(&file);
-
-    int stream_value;
-    file_input_stream >> stream_value;
-    ui->universeSizeControl->setValue(stream_value);
-
-    game->setUniverseSize(stream_value);
-    QString dump = "";
-
-    for (int k = 0; k != stream_value; k++) {
-        QString tmp;
-        file_input_stream >> tmp;
-        dump.append(tmp + "\n");
-    }
-    game->reconstructGame(dump);
-
-    /* import the (rgb) cell color */
-    int r, g, b;
-    file_input_stream >> r >> g >> b;
-    currentColor = QColor(r, g, b);
-    game->setMasterColor(currentColor);
-
-    /* display specific color as icon on color buttons */
+    QString dump, tmp;
     QPixmap icon(16, 16);
-    icon.fill(currentColor);
-    // ui->colorRandomButton->setIcon(QIcon(icon));
-    ui->colorSelectButton->setIcon(QIcon(icon));
+    int r, g, b;
+    int stream_value;
 
-    /* import iteration interval */
-    file_input_stream >> r;
-    ui->intervalControl->setValue(r);
-    game->setInterval(r);
+    switch (uM) {
+    //
+    // game of life
+    //
+    case 0:
+        file_input_stream >> stream_value;
+        ui->universeSizeControl->setValue(stream_value);
+
+        game->setUniverseSize(stream_value);
+        dump = "";
+
+        for (int k = 0; k != stream_value; k++) {
+            file_input_stream >> tmp;
+            dump.append(tmp + "\n");
+        }
+        game->reconstructGame(dump);
+
+        /* import the (rgb) cell color */
+        file_input_stream >> r >> g >> b;
+        currentColor = QColor(r, g, b);
+        game->setMasterColor(currentColor);
+
+        /* display specific color as icon on color buttons */
+        icon.fill(currentColor);
+        ui->colorSelectButton->setIcon(QIcon(icon));
+
+        /* import iteration interval */
+        file_input_stream >> r;
+        ui->intervalControl->setValue(r);
+        game->setInterval(r);
+        break;
+
+    //
+    // snake
+    //
+    case 1:
+        file_input_stream >> stream_value;
+        ui->universeSizeControl->setValue(stream_value);
+
+        game->setUniverseSize(stream_value);
+        dump = "";
+
+        for (int k = 0; k != stream_value; k++) {
+            file_input_stream >> tmp;
+            dump.append(tmp + "\n");
+        }
+
+        game->reconstructGame(dump);
+
+        /* import the (rgb) cell color */
+        file_input_stream >> r >> g >> b;
+        currentColor = QColor(r, g, b);
+        game->setMasterColor(currentColor);
+
+        /* display specific color as icon on color buttons */
+        icon.fill(currentColor);
+        ui->colorSelectButton->setIcon(QIcon(icon));
+
+        /* import iteration interval */
+        file_input_stream >> r;
+        ui->intervalControl->setValue(r);
+        game->setInterval(r);
+
+        break;
+
+    default:
+        break;
+    }
+
 }
 
 
@@ -210,5 +319,8 @@ void MainWindow::goGame() {
      *  mit entsprechendem Inhalt zu fuellen
      *
      */
-    return;
+    if (game->getUniverseMode() == 1) {
+        game->setFocus();
+    }
+
 }

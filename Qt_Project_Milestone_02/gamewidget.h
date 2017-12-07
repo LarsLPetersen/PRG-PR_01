@@ -13,11 +13,14 @@ class GameWidget : public QWidget {
 public:
     explicit GameWidget(QWidget *parent = 0);
     ~GameWidget();
+    CAbase getCA();
+
 
 protected:
     void paintEvent(QPaintEvent *);
     void mousePressEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
+    void keyPressEvent(QKeyEvent *e);
 
 signals:
     // when one of the cell has been changed,emit this signal to lock the universeSize
@@ -51,6 +54,9 @@ public slots:
 
     QString dumpGame(); // dump of current universe
     void reconstructGame(const QString &data); // set current universe from it's dump
+
+    void setSnakeDirection (int sD);
+    int getSnakeDirection ();
 
 private slots:
     void paintGrid(QPainter &p);

@@ -100,13 +100,15 @@ public:
                                  1,     // move and feed
                                  2};    // move and die
 
-    int snakeDirection = 8;     // initial directions
-    int snakeLength = 3;    //  initial length
-    int snakeAction = 0;    // initial action
+    int snakeDirection = 8;
+    int snakeLength = 3;
+    int snakeAction = 0;
 
-    int positionHead;
-    int positionTail;
-    int positionFood;
+
+    struct position {
+        int x;
+        int y;
+    } positionHead, positionTail, positionFood;
 
     int getSnakeAction();
 
@@ -251,7 +253,7 @@ inline void CAbase::worldEvolutionLife() {
 }
 
 
-// Game "Snake" rules:
+// "Snake" rules:
 //
 // ...
 

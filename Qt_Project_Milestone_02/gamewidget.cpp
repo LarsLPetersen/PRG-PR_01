@@ -28,7 +28,6 @@ GameWidget::GameWidget(QWidget *parent) :
     ca1.resetWorldSize(universeSize, universeSize);
     connect(timer, SIGNAL(timeout()), this, SLOT(newGeneration()));
     connect(timerColor, SIGNAL(timeout()), this, SLOT(newGenerationColor()));
-
 }
 
 
@@ -76,18 +75,6 @@ void GameWidget::setUniverseSize(const int &s) {
 }
 
 
-//int GameWidget::getLifeInterval() {
-//    /* cell's lifetime - number of step when cell is on the universe */
-//    return lifeTime;
-//}
-
-
-//void GameWidget::setLifeInterval(const int &l) {
-//    /* set lifetime for cell */
-//    lifeTime = l;
-//}
-
-
 int GameWidget::getUniverseMode() {
     return universeMode;
 }
@@ -115,37 +102,116 @@ void GameWidget::setCellMode(const int &m) {
 }
 
 
+CAbase GameWidget::getCA() {
+    return ca1;
+}
+
+
 QString GameWidget::dumpGame() {
     /* dump current universe */
-    QString temp;
-    //char temp;
+    char temp;
     QString master = "";
-    for (int k = 1; k <= universeSize; k++) {
-        for (int j = 1; j <= universeSize; j++) {
-            temp = (QString) ca1.getValue(j, k);
-//            if (ca1.getValue(j, k) == 1) {
-//                temp = '*';
-//            } else {
-//                temp = 'o';
-//            }
-            master.append(temp);
+
+    switch (universeMode) {
+    //
+    // game of life
+    //
+    case 0:
+        for (int k = 1; k <= universeSize; k++) {
+            for (int j = 1; j <= universeSize; j++) {
+                if (ca1.getValue(j, k) == 1) {
+                    temp = '*';
+                } else {
+                    temp = 'o';
+                }
+                master.append(temp);
+            }
+            master.append("\n");
         }
-        master.append("\n");
+        return master;
+        break;
+
+    //
+    // snake
+    //
+    case 1:
+        for (int k = 1; k <= universeSize; k++) {
+            for (int j = 1; j <= universeSize; j++) {
+                int value = ca1.getValue(j, k);
+                if (value == 5) {
+                    temp = 'F';
+                } else if (value == 10) {
+                    temp = 'H';
+                } else if (value == 11) {
+                    temp = 'B';
+                } else if (value == ca1.snakeLength) {
+                    temp = 'T';
+                } else {
+                    temp = 'o';
+                }
+                master.append(temp);
+            }
+            master.append("\n");
+        }
+        return master;
+        break;
+
+    default:
+        return "";
+        break;
     }
-    return master;
+
 }
 
 
 void GameWidget::reconstructGame(const QString &data) {
      // reconstruct game from dump
-    int current = 0;
-    for (int k = 1; k <= universeSize; k++) {
-        for (int j = 1; j <= universeSize; j++) {
-           if (data[current] == '*') ca1.setValue(j, k, 1);
+    int current;
+    switch (universeMode) {
+    //
+    // game of life
+    //
+    case 0:
+        current = 0;
+        for (int k = 1; k <= universeSize; k++) {
+            for (int j = 1; j <= universeSize; j++) {
+               if (data[current] == '*') {
+                   ca1.setValue(j, k, 1);
+                }
+                current++;
+            }
             current++;
         }
-        current++;
+        break;
+
+    //
+    // snake
+    //
+    case 1:
+        current = 0;
+        for (int k = 1; k <= universeSize; k++) {
+            for (int j = 1; j <= universeSize; j++) {
+                if (data[current] == 'F') {
+                    ca1.setValue(j, k, 5);
+                } else if (data[current] == 'H') {
+                    ca1.setValue(j, k, 10);
+                } else if (data[current] == 'B') {
+                    ca1.setValue(j, k, 11);
+                } else if (data[current] == 'T') {
+                    ca1.setValue(j, k, ca1.snakeLength);
+                } else {
+                    ca1.setValue(j, k, 0);
+                }
+                current++;
+            }
+            current++;
+        }
+        break;
+
+    default:
+        break;
     }
+
     update();
 }
 
@@ -173,6 +239,7 @@ void GameWidget::newGeneration() {
         break;
     case 1: // snake
         ca1.worldEvolutionLife();
+        //ca1.worldEvolutionSnake();
         break;
     default:
         break;
@@ -181,9 +248,9 @@ void GameWidget::newGeneration() {
     update();
 
     if (ca1.isNotChanged()) {
-        const QString headlines[] = {"Game lost sense!", "Game over!"};
-        const QString details[] = {"The End. The game is over since the next generations will be the same.",
-                             "The End."};
+        const QString headlines[] = {"Evolution stopped!", "Game over!"};
+        const QString details[] = {"All future generations will be identical to this one.",
+                             "Your snake made an illegal move."};
 
         QMessageBox msgBox;
         switch (universeMode) {
@@ -250,8 +317,8 @@ void GameWidget::paintEvent(QPaintEvent *) {
 
 void GameWidget::mousePressEvent(QMouseEvent *e) {
     emit environmentChanged(true);
-    double cellWidth = (double) width()/universeSize;
-    double cellHeight = (double) height()/universeSize;
+    double cellWidth = (double) width() / universeSize;
+    double cellHeight = (double) height() / universeSize;
     int k = floor(e->y()/cellHeight) + 1;
     int j = floor(e->x()/cellWidth) + 1;
 
@@ -267,17 +334,16 @@ void GameWidget::mousePressEvent(QMouseEvent *e) {
             if (mode[cellMode] == 9 || mode[cellMode] == 10)
                 ca1.setLifetime(j, k, 50); // lifeTime = 50
         }
-
         update();
     }
 }
 
 
 void GameWidget::mouseMoveEvent(QMouseEvent *e) {
-    double cellWidth = (double) width()/universeSize;
-    double cellHeight = (double) height()/universeSize;
-    int k = floor(e->y()/cellHeight)+1;
-    int j = floor(e->x()/cellWidth)+1;
+    double cellWidth = (double) width() / universeSize;
+    double cellHeight = (double) height() / universeSize;
+    int k = floor(e->y() / cellHeight) + 1;
+    int j = floor(e->x() / cellWidth) + 1;
 
     int mode[9] = {1, 3, 6, 4, 2, 8, 9, 10, 11};
 
@@ -292,15 +358,42 @@ void GameWidget::mouseMoveEvent(QMouseEvent *e) {
 }
 
 
+int GameWidget::getSnakeDirection() {
+    return ca1.snakeDirection;
+}
+
+
+void GameWidget::setSnakeDirection(int sD) {
+    ca1.snakeDirection = sD;
+}
+
+
+void GameWidget::keyPressEvent(QKeyEvent *e) {
+
+    int keyValue = e->key();
+    if (keyValue == Qt::Key_Up) {
+        GameWidget::setSnakeDirection(8);
+    } else if (keyValue == Qt::Key_Down) {
+        GameWidget::setSnakeDirection(2);
+    } else if (keyValue == Qt::Key_Left) {
+        GameWidget::setSnakeDirection(4);
+    } else if (keyValue == Qt::Key_Right) {
+        GameWidget::setSnakeDirection(6);
+    } else {
+
+    }
+}
+
+
 void GameWidget::paintGrid(QPainter &p) {
     QRect borders(0, 0, width() - 1, height() - 1); // borders of the universe
     QColor gridColor = masterColor; // color of the grid
     gridColor.setAlpha(10); // must be lighter than main color
     p.setPen(gridColor);
-    double cellWidth = (double) width()/universeSize; // width of the widget / number of cells at one row
+    double cellWidth = (double) width() / universeSize; // width of the widget / number of cells at one row
     for (double k = cellWidth; k <= width(); k += cellWidth)
         p.drawLine(k, 0, k, height());
-    double cellHeight = (double) height()/universeSize; // height of the widget / number of cells at one row
+    double cellHeight = (double) height() / universeSize; // height of the widget / number of cells at one row
     for (double k = cellHeight; k <= height(); k += cellHeight)
         p.drawLine(0, k, width(), k);
     p.drawRect(borders);
@@ -308,10 +401,10 @@ void GameWidget::paintGrid(QPainter &p) {
 
 
 void GameWidget::paintUniverse(QPainter &p) {
-    double cellWidth = (double) width()/universeSize;
-    double cellHeight = (double) height()/universeSize;
-    for (int k=1; k <= universeSize; k++) {
-        for (int j=1; j <= universeSize; j++) {
+    double cellWidth = (double) width() / universeSize;
+    double cellHeight = (double) height() / universeSize;
+    for (int k = 1; k <= universeSize; k++) {
+        for (int j = 1; j <= universeSize; j++) {
             if (ca1.getValue(j, k) != 0) {
                 qreal left = (qreal) (cellWidth * j - cellWidth); // margin from left
                 qreal top  = (qreal) (cellHeight * k - cellHeight); // margin from top
@@ -358,9 +451,18 @@ QColor GameWidget::setColor(const int &color) {
                            Qt::yellow,
                            Qt::darkYellow};
 
-//    if (color >= 0 && color < 12)
-//        cellColor[color];
-
     return cellColor[color];
 }
+
+
+//int GameWidget::getLifeInterval() {
+//    /* cell's lifetime - number of step when cell is on the universe */
+//    return lifeTime;
+//}
+
+
+//void GameWidget::setLifeInterval(const int &l) {
+//    /* set lifetime for cell */
+//    lifeTime = l;
+//}
 
