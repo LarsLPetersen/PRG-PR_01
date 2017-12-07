@@ -134,9 +134,10 @@ void MainWindow::saveGame() {
             return;
         }
 
+        color = game->getMasterColor();
+
         buffer = QString::number(game->getUniverseSize()) + "\n";
 
-        color = game->getMasterColor();
         buffer += QString::number(color.red()) + " " +
                   QString::number(color.green()) + " " +
                   QString::number(color.blue()) + "\n";
@@ -146,8 +147,8 @@ void MainWindow::saveGame() {
         buffer += QString::number(game->getCA().snakeDirection) + "\n" +
                   QString::number(game->getCA().snakeLength) + "\n" +
                   QString::number(game->getCA().snakeAction) + "\n" +
-                  QString::number(game->getCA().positionHead.x) + " " + QString::number(game->getCA().positionHead.y) + "\n" +
-                  QString::number(game->getCA().positionTail.x) + " " + QString::number(game->getCA().positionTail.y) + "\n" +
+                  QString::number(game->getCA().positionSnakeHead.x) + " " + QString::number(game->getCA().positionSnakeHead.y) + "\n" +
+                  QString::number(game->getCA().positionSnakeTail.x) + " " + QString::number(game->getCA().positionSnakeTail.y) + "\n" +
                   QString::number(game->getCA().positionFood.x) + " " + QString::number(game->getCA().positionFood.y) + "\n";
         file.write(buffer.toUtf8());
         buffer.clear();

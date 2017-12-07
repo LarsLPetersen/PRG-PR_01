@@ -88,6 +88,11 @@ void GameWidget::setUniverseMode(const int &m) {
     if (old_m != m) {
         GameWidget::clearGame();
     }
+    if (m == 1) {
+        ca1.placeInitSnake();
+        ca1.placeNewFood();
+    update();
+    }
 }
 
 
@@ -234,10 +239,16 @@ void GameWidget::newGeneration() {
         generations++;
 
     switch (universeMode) {
-    case 0: // game of life
+    //
+    // game of life
+    //
+    case 0:
         ca1.worldEvolutionLife();
         break;
-    case 1: // snake
+    //
+    // snake
+    //
+    case 1:
         ca1.worldEvolutionLife();
         //ca1.worldEvolutionSnake();
         break;
@@ -409,17 +420,18 @@ void GameWidget::paintUniverse(QPainter &p) {
                 qreal left = (qreal) (cellWidth * j - cellWidth); // margin from left
                 qreal top  = (qreal) (cellHeight * k - cellHeight); // margin from top
                 QRectF r(left, top, (qreal) cellWidth, (qreal) cellHeight);
-                if (0 && universeMode != 7) { // randomMode = 0
-                    p.fillRect(r, setColor(ca1.getColor(j, k))); //fill cell with brush from random mode
-                 }
-                else {
-                    if (ca1.getValue(j, k) == 1 || universeMode == 7) {
-                        p.fillRect(r, QBrush(masterColor)); // fill cell with brush of main color
-                    }
-                    else {
-                        p.fillRect(r, setColor(ca1.getValue(j, k))); //fill cell with brush of cell type
-                    }
-                }
+                p.fillRect(r, QBrush(masterColor));
+//                if (0 && universeMode != 7) { // randomMode = 0
+//                    p.fillRect(r, setColor(ca1.getColor(j, k))); //fill cell with brush from random mode
+//                 }
+//                else {
+//                    if (ca1.getValue(j, k) == 1 || universeMode == 7) {
+//                        p.fillRect(r, QBrush(masterColor)); // fill cell with brush of main color
+//                    }
+//                    else {
+//                        p.fillRect(r, setColor(ca1.getValue(j, k))); //fill cell with brush of cell type
+//                    }
+//                }
             }
         }
     }
