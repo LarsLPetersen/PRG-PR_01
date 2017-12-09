@@ -95,7 +95,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="cellModeControl"/>
+        <widget class="QComboBox" name="cellModeControl">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="generationIntervalLabel">
@@ -160,6 +164,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="gameGoButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>GO!</string>
          </property>

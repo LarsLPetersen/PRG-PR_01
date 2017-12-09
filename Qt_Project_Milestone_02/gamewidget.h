@@ -3,7 +3,8 @@
 
 #include <QColor>
 #include <QWidget>
-#include "CAbase.h"
+#include <QObject>
+#include "cabase.h"
 
 
 class GameWidget : public QWidget {
@@ -15,18 +16,18 @@ public:
     ~GameWidget();
     CAbase getCA();
 
-
 protected:
     void paintEvent(QPaintEvent *);
     void mousePressEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
-    void keyPressEvent(QKeyEvent *e);
+    //void keyPressEvent(QKeyEvent *e);
 
 signals:
-    // when one of the cell has been changed,emit this signal to lock the universeSize
-    void environmentChanged(bool ok);
-    // when game is over or clear is called,emit it to unlock the universeSize
-    void gameEnds(bool ok);
+    void universeModified(bool);
+    void gameStarted(bool);
+    void gameStopped(bool);
+    void gameEnds(bool);
+
 
 public slots:
     void startGame(const int &number = -1); // start
@@ -55,8 +56,7 @@ public slots:
     QString dumpGame(); // dump of current universe
     void reconstructGame(const QString &data); // set current universe from it's dump
 
-    void setSnakeDirection (int sD);
-    int getSnakeDirection ();
+    void calcDirectionSnake (int dS);
 
 private slots:
     void paintGrid(QPainter &p);
@@ -73,7 +73,6 @@ private:
     int universeSize;
     int universeMode;
     int cellMode;
-
     //int randomMode;
     //int lifeTime;
 };

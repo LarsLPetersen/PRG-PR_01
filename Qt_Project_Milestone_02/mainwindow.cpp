@@ -8,6 +8,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "keypressfilter.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -19,38 +20,58 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     /* game choices */
-    ui->universeModeControl->addItem("Classic Life");
+    ui->universeModeControl->addItem("Game of Life");
     ui->universeModeControl->addItem("Snake");
 
-    /*cell mode choices*/
+    /* cell mode choices */
     ui->cellModeControl->addItem("Classic");
 
     /* color icons for color buttons */
     QPixmap icon(16, 16);
     icon.fill(currentColor);
     ui->colorSelectButton->setIcon(QIcon(icon));
-    //ui->colorRandomButton->setIcon(QIcon(icon));
 
-    /* connecting signals to slots */
-    // game control buttons
+    /* game control buttons */
     connect(ui->startButton, SIGNAL(clicked()), game, SLOT(startGame()));
     connect(ui->stopButton, SIGNAL(clicked()), game, SLOT(stopGame()));
     connect(ui->clearButton, SIGNAL(clicked()), game, SLOT(clearGame()));
 
-    // spin boxes
+    /* spin boxes */
     connect(ui->intervalControl, SIGNAL(valueChanged(int)), game, SLOT(setInterval(int)));
     connect(ui->universeSizeControl, SIGNAL(valueChanged(int)), game, SLOT(setUniverseSize(int)));
 
-    // combo boxes
+    /* combo boxes */
     connect(ui->universeModeControl, SIGNAL(currentIndexChanged(int)), game, SLOT(setUniverseMode(int)));
     connect(ui->cellModeControl, SIGNAL(currentIndexChanged(int)), game, SLOT(setCellMode(int)));
 
-    // when one of the cells has been changed => lock button "Universe Size"
-    connect(game, SIGNAL(environmentChanged(bool)), ui->universeSizeControl, SLOT(setDisabled(bool)));
-    // when game over - activate button "Universe Size"
-    connect(game, SIGNAL(gameEnds(bool)), ui->universeSizeControl, SLOT(setEnabled(bool)));
+    /* enable/disable interaction during the game */
+    connect(game, SIGNAL(gameStarted(bool)), ui->universeSizeControl, SLOT(setDisabled(bool)));
+    connect(game, SIGNAL(gameStarted(bool)), ui->universeModeControl, SLOT(setDisabled(bool)));
+    connect(game, SIGNAL(gameStarted(bool)), ui->intervalControl, SLOT(setDisabled(bool)));
+    connect(game, SIGNAL(gameStarted(bool)), ui->saveButton, SLOT(setDisabled(bool)));
+    connect(game, SIGNAL(gameStarted(bool)), ui->loadButton, SLOT(setDisabled(bool)));
+    //connect(game, SIGNAL(gameStarted(bool)), ui->cellModeControl, SLOT(setDisabled(bool)));
 
-    // color choice buttons
+    connect(game, SIGNAL(universeModified(bool)), ui->universeSizeControl, SLOT(setDisabled(bool)));
+    connect(game, SIGNAL(universeModified(bool)), ui->universeModeControl, SLOT(setDisabled(bool)));
+    connect(game, SIGNAL(universeModified(bool)), ui->intervalControl, SLOT(setDisabled(bool)));
+    //connect(game, SIGNAL(universeModified(bool)), ui->cellModeControl, SLOT(setDisabled(bool)));
+
+    connect(game, SIGNAL(gameStopped(bool)), ui->universeSizeControl, SLOT(setEnabled(bool)));
+    connect(game, SIGNAL(gameStopped(bool)), ui->universeModeControl, SLOT(setEnabled(bool)));
+    connect(game, SIGNAL(gameStopped(bool)), ui->intervalControl, SLOT(setEnabled(bool)));
+    connect(game, SIGNAL(gameStopped(bool)), ui->saveButton, SLOT(setEnabled(bool)));
+    connect(game, SIGNAL(gameStopped(bool)), ui->loadButton, SLOT(setEnabled(bool)));
+    //connect(game, SIGNAL(gameStopped(bool)), ui->cellModeControl, SLOT(setEnabled(bool)));
+
+    connect(game, SIGNAL(gameEnds(bool)), ui->universeSizeControl, SLOT(setEnabled(bool)));
+    connect(game, SIGNAL(gameEnds(bool)), ui->universeModeControl, SLOT(setEnabled(bool)));
+    connect(game, SIGNAL(gameEnds(bool)), ui->intervalControl, SLOT(setEnabled(bool)));
+    connect(game, SIGNAL(gameEnds(bool)), ui->saveButton, SLOT(setEnabled(bool)));
+    connect(game, SIGNAL(gameEnds(bool)), ui->loadButton, SLOT(setEnabled(bool)));
+    //connect(game, SIGNAL(gameEnds(bool)), ui->cellModeControl, SLOT(setEnabled(bool)));
+
+    /* color choices */
     connect(ui->colorSelectButton, SIGNAL(clicked()), this, SLOT(selectMasterColor()));
     connect(ui->colorRandomButton, SIGNAL(clicked()), this, SLOT(selectRandomColor()));
 
@@ -64,6 +85,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /* add gamewidget to gameLayout */
     ui->gameLayout->addWidget(game);
+
+    /* send keystrokes to snake game */
+    KeyPressFilter *keyPressFilter = new KeyPressFilter(this->game);
+    this->installEventFilter(keyPressFilter);
+    connect(keyPressFilter, SIGNAL(keyPressed(int)), game, SLOT(calcDirectionSnake(int)));
 }
 
 
@@ -73,7 +99,6 @@ MainWindow::~MainWindow() {
 
 
 void MainWindow::saveGame() {
-
     int uM = game->getUniverseMode();
     QString filename, size, buffer;
     QColor color;
@@ -144,11 +169,11 @@ void MainWindow::saveGame() {
 
         buffer += QString::number(ui->intervalControl->value()) + "\n";
 
-        buffer += QString::number(game->getCA().snakeDirection) + "\n" +
+        buffer += QString::number(game->getCA().directionSnake.past) + "\n" +
+                  QString::number(game->getCA().directionSnake.future) + "\n" +
                   QString::number(game->getCA().snakeLength) + "\n" +
                   QString::number(game->getCA().snakeAction) + "\n" +
                   QString::number(game->getCA().positionSnakeHead.x) + " " + QString::number(game->getCA().positionSnakeHead.y) + "\n" +
-                  QString::number(game->getCA().positionSnakeTail.x) + " " + QString::number(game->getCA().positionSnakeTail.y) + "\n" +
                   QString::number(game->getCA().positionFood.x) + " " + QString::number(game->getCA().positionFood.y) + "\n";
         file.write(buffer.toUtf8());
         buffer.clear();
@@ -290,7 +315,6 @@ void MainWindow::selectMasterColor() {
     QPixmap icon(16, 16);
     icon.fill(color);
     ui->colorSelectButton->setIcon(QIcon(icon));
-    ui->colorRandomButton->setIcon(QIcon(icon));
 }
 
 
@@ -320,8 +344,4 @@ void MainWindow::goGame() {
      *  mit entsprechendem Inhalt zu fuellen
      *
      */
-    if (game->getUniverseMode() == 1) {
-        game->setFocus();
-    }
-
 }

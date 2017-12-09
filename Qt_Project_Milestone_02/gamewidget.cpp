@@ -5,9 +5,11 @@
 #include <QRectF>
 #include <QString>
 #include <QPainter>
-#include "QTime"
+#include <QTime>
+
 #include <qmath.h>
 #include "gamewidget.h"
+#include "keypressfilter.h"
 
 
 GameWidget::GameWidget(QWidget *parent) :
@@ -37,6 +39,7 @@ GameWidget::~GameWidget() {
 
 void GameWidget::startGame(const int &number) {
     /* start the game */
+    emit gameStarted(true);
     generations = number;
     timer->start();
 }
@@ -44,6 +47,7 @@ void GameWidget::startGame(const int &number) {
 
 void GameWidget::stopGame() {
     /* stop the game */
+    emit gameStopped(true);
     timer->stop();
     timerColor->stop();
 }
@@ -57,7 +61,14 @@ void GameWidget::clearGame() {
     }
     gameEnds(true);
     ca1.resetWorldSize(universeSize, universeSize);
-    //randomMode = 0;
+
+    //
+    // snake
+    //
+    if (universeMode == 1) {
+        ca1.putInitSnake();
+        ca1.putNewFood();
+    }
     update();
 }
 
@@ -85,14 +96,8 @@ void GameWidget::setUniverseMode(const int &m) {
     int old_m = GameWidget::getUniverseMode();
     universeMode = m;
 
-    if (old_m != m) {
-        GameWidget::clearGame();
-    }
-    if (m == 1) {
-        ca1.placeInitSnake();
-        ca1.placeNewFood();
+    if (old_m != m) GameWidget::clearGame();
     update();
-    }
 }
 
 
@@ -249,8 +254,7 @@ void GameWidget::newGeneration() {
     // snake
     //
     case 1:
-        ca1.worldEvolutionLife();
-        //ca1.worldEvolutionSnake();
+        ca1.worldEvolutionSnake();
         break;
     default:
         break;
@@ -265,12 +269,17 @@ void GameWidget::newGeneration() {
 
         QMessageBox msgBox;
         switch (universeMode) {
+        //
+        // game of life
+        //
         case 0:
             msgBox.setIcon(QMessageBox::Information);
             msgBox.setText(headlines[0]);
             msgBox.setInformativeText(details[0]);
         break;
-
+        //
+        // snake
+        //
         case 1:
             msgBox.setIcon(QMessageBox::Information);
             msgBox.setText(headlines[1]);
@@ -289,11 +298,8 @@ void GameWidget::newGeneration() {
     if (generations == 0) {
         stopGame();
         gameEnds(true);
-        QMessageBox::information(this,
-                                 tr("Game finished."),
-                                 tr("Iterations finished."),
-                                 QMessageBox::Ok,
-                                 QMessageBox::Cancel);
+        QMessageBox::information(this, tr("Game finished."), tr("Iterations finished."),
+                                 QMessageBox::Ok, QMessageBox::Cancel);
     }
 
 }
@@ -310,11 +316,8 @@ void GameWidget::newGenerationColor() {
     if (generations == 0) {
         stopGame();
         gameEnds(true);
-        QMessageBox::information(this,
-                                 tr("Game finished."),
-                                 tr("Iterations finished."),
-                                 QMessageBox::Ok,
-                                 QMessageBox::Cancel);
+        QMessageBox::information(this, tr("Game finished."), tr("Iterations finished."),
+                                 QMessageBox::Ok, QMessageBox::Cancel);
     }
 }
 
@@ -327,14 +330,17 @@ void GameWidget::paintEvent(QPaintEvent *) {
 
 
 void GameWidget::mousePressEvent(QMouseEvent *e) {
-    emit environmentChanged(true);
+    emit universeModified(true);
     double cellWidth = (double) width() / universeSize;
     double cellHeight = (double) height() / universeSize;
-    int k = floor(e->y()/cellHeight) + 1;
-    int j = floor(e->x()/cellWidth) + 1;
+    int k = floor(e->y() / cellHeight) + 1;
+    int j = floor(e->x() / cellWidth) + 1;
 
     int mode[9] = {1, 3, 6, 4, 2, 8, 9, 10, 11};
 
+    //
+    // game of life
+    //
     if (universeMode == 0) {
         if (ca1.getValue(j, k) != 0) {
             ca1.setValue(j, k, 0);
@@ -369,29 +375,11 @@ void GameWidget::mouseMoveEvent(QMouseEvent *e) {
 }
 
 
-int GameWidget::getSnakeDirection() {
-    return ca1.snakeDirection;
-}
-
-
-void GameWidget::setSnakeDirection(int sD) {
-    ca1.snakeDirection = sD;
-}
-
-
-void GameWidget::keyPressEvent(QKeyEvent *e) {
-
-    int keyValue = e->key();
-    if (keyValue == Qt::Key_Up) {
-        GameWidget::setSnakeDirection(8);
-    } else if (keyValue == Qt::Key_Down) {
-        GameWidget::setSnakeDirection(2);
-    } else if (keyValue == Qt::Key_Left) {
-        GameWidget::setSnakeDirection(4);
-    } else if (keyValue == Qt::Key_Right) {
-        GameWidget::setSnakeDirection(6);
+void GameWidget::calcDirectionSnake(int dS) {
+    if (dS + ca1.directionSnake.past == 10) {
+        ca1.directionSnake.future = ca1.directionSnake.past;
     } else {
-
+        ca1.directionSnake.future = dS;
     }
 }
 
@@ -465,6 +453,25 @@ QColor GameWidget::setColor(const int &color) {
 
     return cellColor[color];
 }
+
+
+
+
+
+
+//void GameWidget::keyPressEvent(QKeyEvent *e) {
+
+//    int keyValue = e->key();
+//    if (keyValue == Qt::Key_8) {
+//        GameWidget::calcDirectionSnake(8);
+//    } else if (keyValue == Qt::Key_2) {
+//        GameWidget::calcDirectionSnake(2);
+//    } else if (keyValue == Qt::Key_4) {
+//        GameWidget::calcDirectionSnake(4);
+//    } else if (keyValue == Qt::Key_6) {
+//        GameWidget::calcDirectionSnake(6);
+//    }
+//}
 
 
 //int GameWidget::getLifeInterval() {

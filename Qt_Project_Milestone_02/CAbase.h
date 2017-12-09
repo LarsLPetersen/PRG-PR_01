@@ -101,26 +101,30 @@ public:
                                  1,     // move and feed
                                  2};    // move and die
 
-    int snakeDirection = 8;
-    int snakeLength = 3;
-    int snakeAction = 0;
+    struct direction {
+        int past;
+        int future;
+    } directionSnake;
+
+    int snakeLength;
+    int snakeAction;
 
     struct position {
         int x;
         int y;
-    } positionSnakeHead, positionSnakeTail, positionFood;
+    } positionSnakeHead, positionFood;
 
     void calculateSnakeAction();
 
-    int cellEvolutionSnake(int x, int y);
+    int cellEvolutionSnakeDummy(int x, int y);
 
     void worldEvolutionSnake();
 
-    void worldEvolutionSnake2();
+    void worldEvolutionSnakeDummy();
 
-    void placeNewFood();
+    void putNewFood();
 
-    void placeInitSnake();
+    void putInitSnake();
 
     position convert(int x, int y, int sD);
 
@@ -198,6 +202,10 @@ inline void CAbase::resetWorldSize(int nx, int ny, bool del) {
     }
 }
 
+
+//
+// game of life
+//
 inline int CAbase::cellEvolutionLife(int x, int y) {
     // Game "Life" rules:
     //
@@ -233,8 +241,9 @@ inline int CAbase::cellEvolutionLife(int x, int y) {
     return 0;
 }
 
+
 inline void CAbase::worldEvolutionLife() {
-    // universe evolution for every cell
+    /* universe evolution for every cell */
     for (int ix = 1; ix <= Nx; ix++) {
         for (int iy = 1; iy <= Ny; iy++) {
                 cellEvolutionLife(ix, iy);
@@ -242,7 +251,7 @@ inline void CAbase::worldEvolutionLife() {
     }
 
     nochanges = true;
-    // Copy new state to current universe
+    /* copy new states to current states */
     for (int ix = 1; ix <= Nx; ix++) {
         for (int iy = 1; iy <= Ny; iy++) {
             if (world[iy * (Nx + 2) + ix] != worldNew[iy * (Nx + 2) + ix]) {
@@ -254,10 +263,44 @@ inline void CAbase::worldEvolutionLife() {
     // if nochanges == true, there is no evolution and the universe remains constant
 }
 
-inline void CAbase::placeNewFood() {
+
+//
+// snake
+//
+inline CAbase::position CAbase::convert(int x, int y, int sD) {
+    /* map snakeDirection to coordinates */
+    CAbase::position newCoord;
+    switch (sD) {
+    case 8: // up
+       newCoord.x = x;
+       newCoord.y = y - 1;
+       break;
+    case 2: // down
+       newCoord.x = x;
+       newCoord.y = y + 1;
+       break;
+    case 4: // left
+       newCoord.x = x - 1;
+       newCoord.y = y;
+       break;
+    case 6:  // right
+       newCoord.x = x + 1;
+       newCoord.y = y;
+       break;
+    default:
+       break;
+    }
+    return newCoord;
+}
+
+
+inline void CAbase::putNewFood() {
+    /* randomly put food inside universe */
     srand(time(NULL));
     bool locationFound = false;
     int xFood, yFood;
+
+    /* only put food in empty spots */
     while (!locationFound) {
         xFood = rand() % Nx + 1;
         yFood = rand() % Ny + 1;
@@ -270,40 +313,26 @@ inline void CAbase::placeNewFood() {
     setValue(xFood, yFood, 5);
 }
 
-inline void CAbase::placeInitSnake(){
+
+inline void CAbase::putInitSnake(){
+    /* put initial snake in the field */
     int xSnakeHead, ySnakeHead;
     xSnakeHead = int(floor(double(Nx) / 2));
     ySnakeHead = int(floor(2 * double(Ny) / 3));
+
     setValue(xSnakeHead, ySnakeHead, 10);
     setValue(xSnakeHead, ySnakeHead + 1, 11);
     setValue(xSnakeHead, ySnakeHead + 2, 12);
+
+    snakeLength = 3;
     positionSnakeHead.x = xSnakeHead;
     positionSnakeHead.y = ySnakeHead;
-    positionSnakeTail.x = xSnakeHead;
-    positionSnakeTail.y = ySnakeHead + 2;
+    directionSnake.past = 8;
+    directionSnake.future = 8;
 }
 
-//inline int * CAbase::calculateNeighborhood(int x, int y) {
-//    static int neighborhood[3][3];
-//    int x1(0), y1(0);
-
-//    for (int ix = -1; ix <= 1; ix++) {
-//        x1 = x + ix;
-//        if ( (x1 <= 0) || (x1 >= Nx + 1) ) x1 = 0;
-
-//        for (int iy = -1; iy <= 1; iy++) {
-//            y1 = y + iy;
-//            if ( (y1 <= 0) || (y1 >= Ny + 1) ) y1 = 0;
-//            neighborhood[ix + 1][iy + 1] = getValue(x1, y1);
-//        }
-//    }
-//    return neighborhood;
-//}
 
 inline void CAbase::calculateSnakeAction(){
-
-//    int *n;
-//    n = calculateNeighborhood(positionSnakeHead.x, positionSnakeHead.y);
 
     int neighborhood[3][3];
     int x1(0), y1(0);
@@ -320,7 +349,15 @@ inline void CAbase::calculateSnakeAction(){
         }
     }
 
-    switch (snakeDirection) {
+#ifdef QT_DEBUG
+    qDebug() << "positionSnakeHead: " << positionSnakeHead.x << " " << positionSnakeHead.y;
+    qDebug("Neighborhood of SnakeHead");
+    for (int i = 0; i <= 2; i++) {
+        qDebug() << neighborhood[0][i] << " " <<  neighborhood[1][i] << " " << neighborhood[2][i];
+    }
+#endif
+
+    switch (directionSnake.future) {
     case 8: // up
         if (neighborhood[1][0] == 5) {
             snakeAction = 1; // move and feed
@@ -358,154 +395,16 @@ inline void CAbase::calculateSnakeAction(){
     }
 }
 
-inline int CAbase::cellEvolutionSnake(int x, int y) {
-    // "Snake" rules:
-    //
-    // ...
-
-    if (snakeAction == 2) {
-        setValueNew(x, y, getValue(x, y));
-    } else {
-        int neighborhood[3][3];
-        int x1(0), y1(0);
-        int v;
-        bool containsSnakeHead = false;
-        bool containsSnakeTail = false;
-
-        for (int ix = -1; ix <= 1; ix++) {
-            x1 = x + ix;
-            if ( (x1 <= 0) || (x1 >= Nx + 1) ) x1 = 0;
-
-            for (int iy = -1; iy <= 1; iy++) {
-                y1 = y + iy;
-                if ( (y1 <= 0) || (y1 >= Ny + 1) ) y1 = 0;
-                v = getValue(x1, y1);
-                neighborhood[ix + 1][iy + 1] = v;
-                if (v == 10) {
-                    containsSnakeHead = true;
-                }
-                if (v == 10 + snakeLength - 1) {
-                    containsSnakeTail = true;
-                }
-            }
-        }
-
-        if (snakeAction == 1) {
-
-        } else if (snakeAction == 0) {
-            if (getValue(x, y) < 10) {
-                setValueNew(x, y, getValue(x, y));
-            } else if (getValue(x, y) == 10) {
-                setValueNew(x, y, getValue(x, y));
-            }
-        }
-        switch (snakeAction) {
-        case 2: // move and die
-
-            break;
-
-        case 1: // move and feed
-            if (getValue(x, y) == 5)
-            break;
-
-        case 0: // move
-            break;
-
-        default:
-            break;
-        }
-
-    }
-    return 0;
-}
 
 inline void CAbase::worldEvolutionSnake() {
+    calculateSnakeAction();
+    int dS = directionSnake.future;
 
-    switch (snakeAction) {
-    //
-    // move
-    //
-    case 0:
-        // snake moves without feeding or dying
-        // universe evolution for every cell
-        for (int x = 1; x <= Nx; x++) {
-            for (int y = 1; y <= Ny; y++) {
-                    cellEvolutionSnake(x, y);
-            }
-        }
-        nochanges = true;
-        // Copy new state to current universe
-        for (int x = 1; x <= Nx; x++) {
-            for (int y = 1; y <= Ny; y++) {
-                if (world[y * (Nx + 2) + x] != worldNew[y * (Nx + 2) + x]) {
-                    nochanges = false;
-                }
-                world[y * (Nx + 2) + x] = worldNew[y * (Nx + 2) + x];
-            }
-        }
-        // if nochanges == true, there is no evolution and the universe remains constant
-        break;
-
-    //
-    // move and feed
-    //
-    case 1:
-        for (int x = 1; x <= Nx; x++) {
-            for (int y = 1; y <= Ny; y++) {
-                    //cellEvolutionSnakeFeed(x, y);
-            }
-        }
-        nochanges = true;
-        // Copy new state to current universe
-        for (int x = 1; x <= Nx; x++) {
-            for (int y = 1; y <= Ny; y++) {
-                if (world[y * (Nx + 2) + x] != worldNew[y * (Nx + 2) + x]) {
-                    nochanges = false;
-                }
-                world[y * (Nx + 2) + x] = worldNew[y * (Nx + 2) + x];
-            }
-        }
-        // if nochanges == true, there is no evolution and the universe remains constant
-        break;
-    //
-    // move and die
-    //
-    case 2:
-        nochanges = true;
-        break;
-
-    default:
-        break;
-    }
-}
-
-inline CAbase::position CAbase::convert(int x, int y, int sD) {
-   CAbase::position newCoord;
-   switch (sD) {
-   case 8: // up
-       newCoord.x = x;
-       newCoord.y = y - 1;
-       break;
-   case 2: // down
-       newCoord.x = x;
-       newCoord.y = y + 1;
-       break;
-   case 4: // left
-       newCoord.x = x - 1;
-       newCoord.y = y;
-       break;
-   case 6:  // right
-       newCoord.x = x + 1;
-       newCoord.y = y;
-       break;
-   default:
-       break;
-
-   return newCoord;
-   }
-}
-
-inline void CAbase::worldEvolutionSnake2() {
+#ifdef QT_DEBUG
+    qDebug() << "action: " << snakeAction;
+    qDebug() << "future_dir: " << directionSnake.future << " " << "past_dir: " << directionSnake.past;
+    qDebug() << "slen: " << snakeLength;
+#endif
 
     switch (snakeAction) {
     //
@@ -516,24 +415,34 @@ inline void CAbase::worldEvolutionSnake2() {
             for (int y = 1; y <= Ny; y++) {
                 int v = getValue(x, y);
                 if (v == 10) {
+#ifdef QT_DEBUG
+                    qDebug() << "(x, y) = (" << x << ", " << y << ")  -> (" << convert(x, y, dS).x << ", " << convert(x, y, dS).y << ")";
+#endif
                     setValueNew(x, y, v + 1);
-                    setValueNew(convert(x, y, snakeDirection).x, convert(x, y, snakeDirection).y)
+                    setValueNew(convert(x, y, dS).x, convert(x, y, dS).y, 10);
+                    positionSnakeHead.x = convert(x, y, dS).x;
+                    positionSnakeHead.y = convert(x, y, dS).y;
+#ifdef QT_DEBUG
+                    qDebug() << "sH: " << positionSnakeHead.x << " " << positionSnakeHead.y;
+#endif
+                } else if (v > 10 && v < 10 + snakeLength - 1) {
+                    setValueNew(x, y, v + 1);
+                } else if (v == 10 + snakeLength - 1) {
+                    setValueNew(x, y, 0);
                 } else if (v == 5) {
-
+                    setValueNew(x, y, v);
                 }
             }
         }
-        nochanges = true;
-        // Copy new state to current universe
+
+        // copy new state to current universe
         for (int x = 1; x <= Nx; x++) {
             for (int y = 1; y <= Ny; y++) {
-                if (world[y * (Nx + 2) + x] != worldNew[y * (Nx + 2) + x]) {
-                    nochanges = false;
-                }
                 world[y * (Nx + 2) + x] = worldNew[y * (Nx + 2) + x];
             }
         }
-        // if nochanges == true, there is no evolution and the universe remains constant
+        nochanges = false;
+        directionSnake.past = directionSnake.future;
         break;
 
     //
@@ -542,7 +451,65 @@ inline void CAbase::worldEvolutionSnake2() {
     case 1:
         for (int x = 1; x <= Nx; x++) {
             for (int y = 1; y <= Ny; y++) {
-                    //cellEvolutionSnakeFeed(x, y);
+                int v = getValue(x, y);
+                if (v == 10) {
+                    setValueNew(x, y, v + 1);
+                    setValueNew(convert(x, y, dS).x, convert(x, y, dS).y, 10);
+                    positionSnakeHead.x = convert(x, y, dS).x;
+                    positionSnakeHead.y = convert(x, y, dS).y;
+                } else if (v > 10) {
+                    setValueNew(x, y, v + 1);
+                } else {
+                    //setValueNew(x, y, v);
+                }
+            }
+        }
+
+        // copy new state to current universe
+        for (int x = 1; x <= Nx; x++) {
+            for (int y = 1; y <= Ny; y++) {
+                world[y * (Nx + 2) + x] = worldNew[y * (Nx + 2) + x];
+            }
+        }
+
+        nochanges = false;
+        snakeLength++;
+        directionSnake.past = directionSnake.future;
+        putNewFood();
+        break;
+
+    //
+    // move and die
+    //
+    case 2:
+        nochanges = true;
+        break;
+
+    default:
+        break;
+    }
+}
+
+
+inline int CAbase::cellEvolutionSnakeDummy(int x, int y) {
+    /* write down snake rules */
+    /* distinguish betwen snakeActions */
+    /* compute local neighborhood */
+
+    return x + y;
+}
+
+
+inline void CAbase::worldEvolutionSnakeDummy() {
+
+    switch (snakeAction) {
+    //
+    // move
+    //
+    case 0:
+        for (int x = 1; x <= Nx; x++) {
+            for (int y = 1; y <= Ny; y++) {
+                cellEvolutionSnakeDummy(x, y);
             }
         }
         nochanges = true;
@@ -555,7 +522,12 @@ inline void CAbase::worldEvolutionSnake2() {
                 world[y * (Nx + 2) + x] = worldNew[y * (Nx + 2) + x];
             }
         }
-        // if nochanges == true, there is no evolution and the universe remains constant
+        break;
+
+    //
+    // move and feed
+    //
+    case 1:
         break;
     //
     // move and die
@@ -568,6 +540,24 @@ inline void CAbase::worldEvolutionSnake2() {
         break;
     }
 }
+
+
+//inline int * CAbase::extractNeighborhood(int x, int y) {
+//    static int neighborhood[3][3];
+//    int x1(0), y1(0);
+
+//    for (int ix = -1; ix <= 1; ix++) {
+//        x1 = x + ix;
+//        if ( (x1 <= 0) || (x1 >= Nx + 1) ) x1 = 0;
+
+//        for (int iy = -1; iy <= 1; iy++) {
+//            y1 = y + iy;
+//            if ( (y1 <= 0) || (y1 >= Ny + 1) ) y1 = 0;
+//            neighborhood[ix + 1][iy + 1] = getValue(x1, y1);
+//        }
+//    }
+//    return neighborhood;
+//}
 
 
 #endif // CABASE_H
