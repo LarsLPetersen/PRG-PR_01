@@ -106,13 +106,32 @@ public:
         int future;
     } directionSnake;
 
-    int snakeLength;
-    int snakeAction;
+    void setDirection(int past, int future, direction dir) {
+        dir.past = past;
+        dir.future = future;
+    }
 
     struct position {
         int x;
         int y;
     } positionSnakeHead, positionFood;
+
+    void setPosition(int x, int y, position pos) {
+        pos.x = x;
+        pos.y = y;
+    }
+
+    int snakeLength;
+
+    void setSnakeLength(int l) {
+        snakeLength = l;
+    }
+
+    int snakeAction;
+
+    void setSnakeAction(int a) {
+        snakeAction = a;
+    }
 
     void calculateSnakeAction();
 
@@ -349,7 +368,7 @@ inline void CAbase::calculateSnakeAction(){
         }
     }
 
-#ifdef QT_DEBUG
+#ifndef QT_DEBUG
     qDebug() << "positionSnakeHead: " << positionSnakeHead.x << " " << positionSnakeHead.y;
     qDebug("Neighborhood of SnakeHead");
     for (int i = 0; i <= 2; i++) {
@@ -400,7 +419,7 @@ inline void CAbase::worldEvolutionSnake() {
     calculateSnakeAction();
     int dS = directionSnake.future;
 
-#ifdef QT_DEBUG
+#ifndef QT_DEBUG
     qDebug() << "action: " << snakeAction;
     qDebug() << "future_dir: " << directionSnake.future << " " << "past_dir: " << directionSnake.past;
     qDebug() << "slen: " << snakeLength;
@@ -415,14 +434,14 @@ inline void CAbase::worldEvolutionSnake() {
             for (int y = 1; y <= Ny; y++) {
                 int v = getValue(x, y);
                 if (v == 10) {
-#ifdef QT_DEBUG
+#ifndef QT_DEBUG
                     qDebug() << "(x, y) = (" << x << ", " << y << ")  -> (" << convert(x, y, dS).x << ", " << convert(x, y, dS).y << ")";
 #endif
                     setValueNew(x, y, v + 1);
                     setValueNew(convert(x, y, dS).x, convert(x, y, dS).y, 10);
                     positionSnakeHead.x = convert(x, y, dS).x;
                     positionSnakeHead.y = convert(x, y, dS).y;
-#ifdef QT_DEBUG
+#ifndef QT_DEBUG
                     qDebug() << "sH: " << positionSnakeHead.x << " " << positionSnakeHead.y;
 #endif
                 } else if (v > 10 && v < 10 + snakeLength - 1) {

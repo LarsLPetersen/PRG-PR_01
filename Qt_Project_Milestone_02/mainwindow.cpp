@@ -111,7 +111,7 @@ void MainWindow::saveGame() {
     case 0:
 
         filename = QFileDialog::getSaveFileName(this, tr("Save current game"),
-                                                QDir::homePath(), tr("Game of Life *.game Files (*.game)"));
+                                                QDir::homePath(), tr("Game of Life *.game Files (*.game_of_life)"));
         if (filename.length() < 1)
             return;
 
@@ -199,7 +199,7 @@ void MainWindow::loadGame() {
     //
     case 0:
         filename = QFileDialog::getOpenFileName(this, tr("Open saved game"),
-                                                QDir::homePath(), tr("Game of Life File (*.game)"));
+                                                QDir::homePath(), tr("Game of Life File (*.game_of_life)"));
         break;
     //
     // snake
@@ -269,31 +269,40 @@ void MainWindow::loadGame() {
     case 1:
         file_input_stream >> stream_value;
         ui->universeSizeControl->setValue(stream_value);
-
         game->setUniverseSize(stream_value);
-        dump = "";
 
-        for (int k = 0; k != stream_value; k++) {
-            file_input_stream >> tmp;
-            dump.append(tmp + "\n");
-        }
-
-        game->reconstructGame(dump);
-
-        /* import the (rgb) cell color */
         file_input_stream >> r >> g >> b;
         currentColor = QColor(r, g, b);
         game->setMasterColor(currentColor);
-
-        /* display specific color as icon on color buttons */
         icon.fill(currentColor);
         ui->colorSelectButton->setIcon(QIcon(icon));
 
-        /* import iteration interval */
         file_input_stream >> r;
         ui->intervalControl->setValue(r);
         game->setInterval(r);
 
+        file_input_stream >> r >> g;
+        game->setDirectionSnake(r, g);
+
+        file_input_stream >> r;
+        game->setSnakeLength(r);
+
+        file_input_stream >> r;
+        game->setSnakeAction(r);
+
+        file_input_stream >> r >> g;
+        game->setPositionSnakeHead(r, g);
+
+        file_input_stream >> r >> g;
+        game->setPositionFood(r, g);
+
+        dump = "";
+        for (int k = 0; k != stream_value; k++) {
+            file_input_stream >> tmp;
+            dump.append(tmp + "\n");
+        }
+        //qDebug() << dump;
+        game->reconstructGame(dump);
         break;
 
     default:

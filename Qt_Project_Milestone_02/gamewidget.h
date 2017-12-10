@@ -4,7 +4,7 @@
 #include <QColor>
 #include <QWidget>
 #include <QObject>
-#include "cabase.h"
+#include "CAbase.h"
 
 
 class GameWidget : public QWidget {
@@ -56,7 +56,21 @@ public slots:
     QString dumpGame(); // dump of current universe
     void reconstructGame(const QString &data); // set current universe from it's dump
 
+    //
+    // snake
+    //
     void calcDirectionSnake (int dS);
+
+    void setDirectionSnake(int past, int future);
+
+    void setPositionSnakeHead(int x, int y);
+
+    void setPositionFood(int x, int y);
+
+    void setSnakeLength(int l);
+
+    void setSnakeAction(int a);
+
 
 private slots:
     void paintGrid(QPainter &p);

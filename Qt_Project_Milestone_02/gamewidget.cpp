@@ -152,12 +152,10 @@ QString GameWidget::dumpGame() {
                     temp = 'F';
                 } else if (value == 10) {
                     temp = 'H';
-                } else if (value == 11) {
-                    temp = 'B';
-                } else if (value == ca1.snakeLength) {
-                    temp = 'T';
+                } else if (value > 10) {
+                    temp = 'H' + value - 10;
                 } else {
-                    temp = 'o';
+                    temp = 'G';
                 }
                 master.append(temp);
             }
@@ -177,6 +175,9 @@ QString GameWidget::dumpGame() {
 void GameWidget::reconstructGame(const QString &data) {
      // reconstruct game from dump
     int current;
+    int ascii_H = (int) 'H';
+    int ascii_Char;
+
     switch (universeMode) {
     //
     // game of life
@@ -201,14 +202,12 @@ void GameWidget::reconstructGame(const QString &data) {
         current = 0;
         for (int k = 1; k <= universeSize; k++) {
             for (int j = 1; j <= universeSize; j++) {
+                ascii_Char = data[current].unicode();
                 if (data[current] == 'F') {
                     ca1.setValue(j, k, 5);
-                } else if (data[current] == 'H') {
-                    ca1.setValue(j, k, 10);
-                } else if (data[current] == 'B') {
-                    ca1.setValue(j, k, 11);
-                } else if (data[current] == 'T') {
-                    ca1.setValue(j, k, ca1.snakeLength);
+                }
+                else if (ascii_Char >= ascii_H) {
+                    ca1.setValue(j, k, 10 + ascii_Char - ascii_H);
                 } else {
                     ca1.setValue(j, k, 0);
                 }
@@ -265,7 +264,7 @@ void GameWidget::newGeneration() {
     if (ca1.isNotChanged()) {
         const QString headlines[] = {"Evolution stopped!", "Game over!"};
         const QString details[] = {"All future generations will be identical to this one.",
-                             "Your snake made an illegal move."};
+                             "Your snake hit an obstacle."};
 
         QMessageBox msgBox;
         switch (universeMode) {
@@ -375,15 +374,6 @@ void GameWidget::mouseMoveEvent(QMouseEvent *e) {
 }
 
 
-void GameWidget::calcDirectionSnake(int dS) {
-    if (dS + ca1.directionSnake.past == 10) {
-        ca1.directionSnake.future = ca1.directionSnake.past;
-    } else {
-        ca1.directionSnake.future = dS;
-    }
-}
-
-
 void GameWidget::paintGrid(QPainter &p) {
     QRect borders(0, 0, width() - 1, height() - 1); // borders of the universe
     QColor gridColor = masterColor; // color of the grid
@@ -455,7 +445,45 @@ QColor GameWidget::setColor(const int &color) {
 }
 
 
+//
+// snake
+//
 
+void GameWidget::calcDirectionSnake(int dS) {
+    if (dS + ca1.directionSnake.past == 10) {
+        ca1.directionSnake.future = ca1.directionSnake.past;
+    } else {
+        ca1.directionSnake.future = dS;
+    }
+}
+
+
+void GameWidget::setDirectionSnake(int past, int future) {
+    ca1.directionSnake.past = past;
+    ca1.directionSnake.future = future;
+}
+
+
+void GameWidget::setSnakeLength(int l) {
+    ca1.snakeLength = l;
+}
+
+
+void GameWidget::setSnakeAction(int a) {
+    ca1.snakeAction = a;
+}
+
+
+void GameWidget::setPositionSnakeHead(int x, int y) {
+    ca1.positionSnakeHead.x = x;
+    ca1.positionSnakeHead.y = y;
+}
+
+
+void GameWidget::setPositionFood(int x, int y) {
+    ca1.positionFood.x = x;
+    ca1.positionFood.y = y;
+}
 
 
 
