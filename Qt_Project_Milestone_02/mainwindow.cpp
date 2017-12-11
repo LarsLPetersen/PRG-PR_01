@@ -120,7 +120,7 @@ void MainWindow::saveGame() {
         if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QMessageBox::warning(this,
                                  tr("File Not Saved"),
-                                 tr("For whatever reason the game could not be written to the chosen file."),
+                                 tr("For some reason the game could not be written to the chosen file."),
                                  QMessageBox::Ok);
             return;
         }
@@ -154,7 +154,7 @@ void MainWindow::saveGame() {
         if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QMessageBox::warning(this,
                                  tr("File Not Saved"),
-                                 tr("For whatever reason the game could not be written to the chosen file."),
+                                 tr("For some reason the game could not be written to the chosen file."),
                                  QMessageBox::Ok);
             return;
         }
@@ -171,8 +171,11 @@ void MainWindow::saveGame() {
 
         buffer += QString::number(game->getCA().directionSnake.past) + "\n" +
                   QString::number(game->getCA().directionSnake.future) + "\n" +
-                  QString::number(game->getCA().snakeLength) + "\n" +
-                  QString::number(game->getCA().snakeAction) + "\n" +
+//                  QString::number(game->getCA().snakeLength) + "\n" +
+//                  QString::number(game->getCA().snakeAction) + "\n" +
+                    QString::number(game->getCA().getSnakeLength()) + "\n" +
+                    QString::number(game->getCA().getSnakeAction()) + "\n" +
+
                   QString::number(game->getCA().positionSnakeHead.x) + " " + QString::number(game->getCA().positionSnakeHead.y) + "\n" +
                   QString::number(game->getCA().positionFood.x) + " " + QString::number(game->getCA().positionFood.y) + "\n";
         file.write(buffer.toUtf8());
@@ -220,7 +223,7 @@ void MainWindow::loadGame() {
     if (!file.open(QIODevice::ReadOnly)){
         QMessageBox::warning(this,
                              tr("File Not Loaded"),
-                             tr("For whatever reason the chosen file could not be loaded."),
+                             tr("For some reason the chosen file could not be loaded."),
                              QMessageBox::Ok);
         return;
     }
@@ -320,7 +323,7 @@ void MainWindow::selectMasterColor() {
     currentColor = color;
     game->setMasterColor(color);
 
-    /* display specific color as icon on color buttons */
+    /* display specific color as icon on color button */
     QPixmap icon(16, 16);
     icon.fill(color);
     ui->colorSelectButton->setIcon(QIcon(icon));
@@ -329,6 +332,7 @@ void MainWindow::selectMasterColor() {
 
 void MainWindow::selectRandomColor() {
     /* generate random rgb values */
+
     srand(time(NULL));
     int r = rand() % 256;
     int g = rand() % 256;
@@ -340,10 +344,9 @@ void MainWindow::selectRandomColor() {
         return;
     game->setMasterColor(color);
 
-    /* display specific color as icon on color buttons */
+    /* display specific color as icon on color button */
     QPixmap icon(16, 16);
     icon.fill(color);
-    //ui->colorRandomButton->setIcon(QIcon(icon));
     ui->colorSelectButton->setIcon(QIcon(icon));
 }
 

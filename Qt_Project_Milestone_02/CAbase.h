@@ -92,62 +92,42 @@ public:
     //
     // snake
     //
-    const int snakeDirections[4] = {2,    // down
-                                    4,    // left
-                                    6,    // right
-                                    8};   // up
-
-    const int snakeActions[3] = {0,     // move
-                                 1,     // move and feed
-                                 2};    // move and die
 
     struct direction {
         int past;
         int future;
     } directionSnake;
 
-    void setDirection(int past, int future, direction dir) {
-        dir.past = past;
-        dir.future = future;
-    }
-
     struct position {
         int x;
         int y;
     } positionSnakeHead, positionFood;
 
-    void setPosition(int x, int y, position pos) {
-        pos.x = x;
-        pos.y = y;
-    }
+    position convert(int x, int y, int sD);
 
-    int snakeLength;
+    int getSnakeLength() {
+        return snakeLength;
+    }
 
     void setSnakeLength(int l) {
         snakeLength = l;
     }
 
-    int snakeAction;
+    int getSnakeAction() {
+        return snakeAction;
+    }
 
     void setSnakeAction(int a) {
         snakeAction = a;
     }
 
-    void calculateSnakeAction();
-
-    int cellEvolutionSnakeDummy(int x, int y);
+    void calcSnakeAction();
 
     void worldEvolutionSnake();
-
-    void worldEvolutionSnakeDummy();
 
     void putNewFood();
 
     void putInitSnake();
-
-    position convert(int x, int y, int sD);
-
-    // int * calculateNeighborhood(int x, int y);
 
 
 private:
@@ -160,11 +140,13 @@ private:
     int *worldLifetime;
     int *worldLifetimeNew;
     bool nochanges;
+    int snakeAction;
+    int snakeLength;
 };
 
 
 inline void CAbase::resetWorldSize(int nx, int ny, bool del) {
-    // creation or re-creation new current and evolution universe with default values (0 for non-border cell and -1 for border cell)
+    // creation or re-creation of current and new universe with default values (0 for non-border cell and -1 for border cell)
     Nx = nx;
     Ny = ny;
 
@@ -172,28 +154,28 @@ inline void CAbase::resetWorldSize(int nx, int ny, bool del) {
         delete[] world;
         delete[] worldNew;
 
-        // Color
+        // color
         delete[] worldColor;
         delete[] worldColorNew;
 
-        // Lifetime
+        //lifetime
         delete[] worldLifetime;
         delete[] worldLifetimeNew;
     }
-
+    // main universe
     world = new int[(Ny + 2) * (Nx + 2) + 1];
     worldNew = new int[(Ny + 2) * (Nx + 2) + 1];
 
-    // Color
+    // color
     worldColor = new int[(Ny + 2) * (Nx + 2) + 1];
     worldColorNew = new int[(Ny + 2) * (Nx + 2) + 1];
 
-    // Lifetime
+    // lifetime
     worldLifetime = new int[(Ny + 2) * (Nx + 2) + 1];
     worldLifetimeNew = new int[(Ny + 2) * (Nx + 2) + 1];
 
     for (int i = 0; i <= (Ny + 2) * (Nx + 2); i++) {
-        // set border cells to -1
+        // set border cells to -1 (still involving modular arithmetic -> toric case
         if ( (i < (Nx + 2)) || (i >= (Ny + 1) * (Nx + 2)) || (i % (Nx + 2) == 0) || (i % (Nx + 2) == (Nx + 1)) ) {
             world[i] = -1;
             worldNew[i] = -1;
@@ -206,15 +188,17 @@ inline void CAbase::resetWorldSize(int nx, int ny, bool del) {
             worldLifetime[i] = -1;
             worldLifetimeNew[i] = -1;
         }
+        // default to 0
         else {
+            // main universe
             world[i] = 0;
             worldNew[i] = 0;
 
-            // Color
+            // color
             worldColor[i] = 0;
             worldColorNew[i] = 0;
 
-            // Lifetime
+            // cifetime
             worldLifetime[i] = 0;
             worldLifetimeNew[i] = 0;
         }
@@ -226,12 +210,13 @@ inline void CAbase::resetWorldSize(int nx, int ny, bool del) {
 // game of life
 //
 inline int CAbase::cellEvolutionLife(int x, int y) {
-    // Game "Life" rules:
-    //
-    // Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
-    // Any live cell with two or three live neighbours lives on to the next generation.
-    // Any live cell with more than three live neighbours dies, as if by overpopulation.
-    // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+    /* Rules
+     *
+     * Any living cell with fewer than two living neighbours dies, as if caused by underpopulation.
+     * Any living cell with two or three living neighbours lives on to the next generation.
+     * Any living cell with more than three living neighbours dies, as if by overpopulation.
+     * Any dead cell with exactly three living neighbours becomes alive, as if by reproduction.
+     */
 
     int n_sum = 0;
     int x1(0), y1(0);
@@ -262,7 +247,7 @@ inline int CAbase::cellEvolutionLife(int x, int y) {
 
 
 inline void CAbase::worldEvolutionLife() {
-    /* universe evolution for every cell */
+    /* apply cell evolution to the universe */
     for (int ix = 1; ix <= Nx; ix++) {
         for (int iy = 1; iy <= Ny; iy++) {
                 cellEvolutionLife(ix, iy);
@@ -279,7 +264,6 @@ inline void CAbase::worldEvolutionLife() {
             world[iy * (Nx + 2) + ix] = worldNew[iy * (Nx + 2) + ix];
         }
     }
-    // if nochanges == true, there is no evolution and the universe remains constant
 }
 
 
@@ -287,7 +271,8 @@ inline void CAbase::worldEvolutionLife() {
 // snake
 //
 inline CAbase::position CAbase::convert(int x, int y, int sD) {
-    /* map snakeDirection to coordinates */
+    /* map snakeDirection to array/grid coordinates */
+
     CAbase::position newCoord;
     switch (sD) {
     case 8: // up
@@ -314,7 +299,8 @@ inline CAbase::position CAbase::convert(int x, int y, int sD) {
 
 
 inline void CAbase::putNewFood() {
-    /* randomly put food inside universe */
+    /* randomly put one piece of food on the field */
+
     srand(time(NULL));
     bool locationFound = false;
     int xFood, yFood;
@@ -334,11 +320,14 @@ inline void CAbase::putNewFood() {
 
 
 inline void CAbase::putInitSnake(){
-    /* put initial snake in the field */
+    /* put initial snake on the field */
+
+    // set it up vertically in the center, lower sector
     int xSnakeHead, ySnakeHead;
     xSnakeHead = int(floor(double(Nx) / 2));
     ySnakeHead = int(floor(2 * double(Ny) / 3));
 
+    // length 3
     setValue(xSnakeHead, ySnakeHead, 10);
     setValue(xSnakeHead, ySnakeHead + 1, 11);
     setValue(xSnakeHead, ySnakeHead + 2, 12);
@@ -346,17 +335,20 @@ inline void CAbase::putInitSnake(){
     snakeLength = 3;
     positionSnakeHead.x = xSnakeHead;
     positionSnakeHead.y = ySnakeHead;
+
+    // initially move up
     directionSnake.past = 8;
     directionSnake.future = 8;
 }
 
 
-inline void CAbase::calculateSnakeAction(){
+inline void CAbase::calcSnakeAction(){
+    /* calculate the next action of the snake (move / move and feed / die) */
 
     int neighborhood[3][3];
     int x1(0), y1(0);
 
-    // calculate neighborhood of snakehead
+    // calculate 3x3 neighborhood of snakehead ([1][1])
     for (int ix = -1; ix <= 1; ix++) {
         x1 = positionSnakeHead.x + ix;
         if ( (x1 <= 0) || (x1 >= Nx + 1) ) x1 = 0;
@@ -376,6 +368,7 @@ inline void CAbase::calculateSnakeAction(){
     }
 #endif
 
+    // determine snake action relative to snake direction based on snakehead in its neighborhood
     switch (directionSnake.future) {
     case 8: // up
         if (neighborhood[1][0] == 5) {
@@ -416,7 +409,15 @@ inline void CAbase::calculateSnakeAction(){
 
 
 inline void CAbase::worldEvolutionSnake() {
-    calculateSnakeAction();
+    /* Rules
+     *
+     * Snake may move horizontally or vertically.
+     * It dies when it hits the boundary or itself.
+     * It grows by feeding - one piece of food at a time.
+     */
+
+    // calculate upcoming snake action
+    calcSnakeAction();
     int dS = directionSnake.future;
 
 #ifndef QT_DEBUG
@@ -425,6 +426,7 @@ inline void CAbase::worldEvolutionSnake() {
     qDebug() << "slen: " << snakeLength;
 #endif
 
+    // based on the global action each of the three cases is considered individually
     switch (snakeAction) {
     //
     // move
@@ -433,6 +435,7 @@ inline void CAbase::worldEvolutionSnake() {
         for (int x = 1; x <= Nx; x++) {
             for (int y = 1; y <= Ny; y++) {
                 int v = getValue(x, y);
+                // head
                 if (v == 10) {
 #ifndef QT_DEBUG
                     qDebug() << "(x, y) = (" << x << ", " << y << ")  -> (" << convert(x, y, dS).x << ", " << convert(x, y, dS).y << ")";
@@ -444,13 +447,17 @@ inline void CAbase::worldEvolutionSnake() {
 #ifndef QT_DEBUG
                     qDebug() << "sH: " << positionSnakeHead.x << " " << positionSnakeHead.y;
 #endif
+                // body
                 } else if (v > 10 && v < 10 + snakeLength - 1) {
                     setValueNew(x, y, v + 1);
+                // tail
                 } else if (v == 10 + snakeLength - 1) {
                     setValueNew(x, y, 0);
+                // food
                 } else if (v == 5) {
                     setValueNew(x, y, v);
                 }
+                // otherwise values are initialized with 0
             }
         }
 
@@ -479,7 +486,7 @@ inline void CAbase::worldEvolutionSnake() {
                 } else if (v > 10) {
                     setValueNew(x, y, v + 1);
                 } else {
-                    //setValueNew(x, y, v);
+
                 }
             }
         }
@@ -490,7 +497,6 @@ inline void CAbase::worldEvolutionSnake() {
                 world[y * (Nx + 2) + x] = worldNew[y * (Nx + 2) + x];
             }
         }
-
         nochanges = false;
         snakeLength++;
         directionSnake.past = directionSnake.future;
@@ -508,75 +514,6 @@ inline void CAbase::worldEvolutionSnake() {
         break;
     }
 }
-
-
-inline int CAbase::cellEvolutionSnakeDummy(int x, int y) {
-    /* write down snake rules */
-    /* distinguish betwen snakeActions */
-    /* compute local neighborhood */
-
-    return x + y;
-}
-
-
-inline void CAbase::worldEvolutionSnakeDummy() {
-
-    switch (snakeAction) {
-    //
-    // move
-    //
-    case 0:
-        for (int x = 1; x <= Nx; x++) {
-            for (int y = 1; y <= Ny; y++) {
-                cellEvolutionSnakeDummy(x, y);
-            }
-        }
-        nochanges = true;
-        // Copy new state to current universe
-        for (int x = 1; x <= Nx; x++) {
-            for (int y = 1; y <= Ny; y++) {
-                if (world[y * (Nx + 2) + x] != worldNew[y * (Nx + 2) + x]) {
-                    nochanges = false;
-                }
-                world[y * (Nx + 2) + x] = worldNew[y * (Nx + 2) + x];
-            }
-        }
-        break;
-
-    //
-    // move and feed
-    //
-    case 1:
-        break;
-    //
-    // move and die
-    //
-    case 2:
-        nochanges = true;
-        break;
-
-    default:
-        break;
-    }
-}
-
-
-//inline int * CAbase::extractNeighborhood(int x, int y) {
-//    static int neighborhood[3][3];
-//    int x1(0), y1(0);
-
-//    for (int ix = -1; ix <= 1; ix++) {
-//        x1 = x + ix;
-//        if ( (x1 <= 0) || (x1 >= Nx + 1) ) x1 = 0;
-
-//        for (int iy = -1; iy <= 1; iy++) {
-//            y1 = y + iy;
-//            if ( (y1 <= 0) || (y1 >= Ny + 1) ) y1 = 0;
-//            neighborhood[ix + 1][iy + 1] = getValue(x1, y1);
-//        }
-//    }
-//    return neighborhood;
-//}
 
 
 #endif // CABASE_H

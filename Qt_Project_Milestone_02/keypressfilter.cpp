@@ -3,7 +3,7 @@
 
 
 KeyPressFilter::KeyPressFilter(QObject *parent) : QObject(parent)
-{
+{ // default constructor
 }
 
 bool KeyPressFilter::eventFilter(QObject *watched, QEvent *event) {

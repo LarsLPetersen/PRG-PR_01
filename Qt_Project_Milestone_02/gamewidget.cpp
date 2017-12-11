@@ -427,31 +427,14 @@ void GameWidget::setMasterColor(const QColor &color) {
 }
 
 
-QColor GameWidget::setColor(const int &color) {
-    QColor cellColor[12]= {Qt::red,
-                           Qt::darkRed,
-                           Qt::green,
-                           Qt::darkGreen,
-                           Qt::blue,
-                           Qt::darkBlue,
-                           Qt::cyan,
-                           Qt::darkCyan,
-                           Qt::magenta,
-                           Qt::darkMagenta,
-                           Qt::yellow,
-                           Qt::darkYellow};
-
-    return cellColor[color];
-}
-
-
 //
 // snake
 //
 
 void GameWidget::calcDirectionSnake(int dS) {
+    /* opposing directions add up to 10 (2 + 8, 4 + 6), so past and future must NOT do so */
     if (dS + ca1.directionSnake.past == 10) {
-        ca1.directionSnake.future = ca1.directionSnake.past;
+        ca1.directionSnake.future = ca1.directionSnake.past; // continue with past direction if input is "invalid"
     } else {
         ca1.directionSnake.future = dS;
     }
@@ -465,12 +448,12 @@ void GameWidget::setDirectionSnake(int past, int future) {
 
 
 void GameWidget::setSnakeLength(int l) {
-    ca1.snakeLength = l;
+    ca1.setSnakeLength(l);
 }
 
 
 void GameWidget::setSnakeAction(int a) {
-    ca1.snakeAction = a;
+    ca1.setSnakeAction(a);
 }
 
 
@@ -503,13 +486,30 @@ void GameWidget::setPositionFood(int x, int y) {
 
 
 //int GameWidget::getLifeInterval() {
-//    /* cell's lifetime - number of step when cell is on the universe */
+//    get the lifetime of each cell, ie. number of generations it will be in the universe
 //    return lifeTime;
 //}
 
 
 //void GameWidget::setLifeInterval(const int &l) {
-//    /* set lifetime for cell */
+//    /* set lifetime for all cells in the universe */
 //    lifeTime = l;
 //}
 
+
+//QColor GameWidget::setColor(const int &color) {
+//    QColor cellColor[12]= {Qt::red,
+//                           Qt::darkRed,
+//                           Qt::green,
+//                           Qt::darkGreen,
+//                           Qt::blue,
+//                           Qt::darkBlue,
+//                           Qt::cyan,
+//                           Qt::darkCyan,
+//                           Qt::magenta,
+//                           Qt::darkMagenta,
+//                           Qt::yellow,
+//                           Qt::darkYellow};
+
+//    return cellColor[color];
+//}

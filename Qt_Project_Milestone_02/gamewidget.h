@@ -30,31 +30,31 @@ signals:
 
 
 public slots:
-    void startGame(const int &number = -1); // start
-    void stopGame(); // finish
-    void clearGame(); // clear
+    void startGame(const int &number = -1);
+    void stopGame();
+    void clearGame();
 
-    int getUniverseSize(); // number of the cells in one row
-    void setUniverseSize(const int &s); // set number of the cells in one row
+    int getUniverseSize();
+    void setUniverseSize(const int &s);
 
     int getUniverseMode();
-    void setUniverseMode(const int &m); //set evolution mode
+    void setUniverseMode(const int &m);
 
     int getCellMode();
-    void setCellMode(const int &m); //set cell mode
+    void setCellMode(const int &m);
 
-    int getInterval(); // interval between generations
-    void setInterval(int msec); // set interval between generations
+    int getInterval();
+    void setInterval(int msec);
 
-    //int getLifeInterval(); // cell's lifetime - number of step when cell is on the universe
-    //void setLifeInterval(const int &l); // set lifetime for cell
+    // int getLifeInterval(); // cell's lifetime - number of generations each cell will be in universe
+    // void setLifeInterval(const int &l); // set lifetime for cells
 
-    QColor getMasterColor(); // color of the cells
-    void setMasterColor(const QColor &color); // set color of the cells
-    QColor setColor(const int &color); //set color of the cells from their number
+    QColor getMasterColor();
+    void setMasterColor(const QColor &color);
+    //QColor setColor(const int &color);
 
-    QString dumpGame(); // dump of current universe
-    void reconstructGame(const QString &data); // set current universe from it's dump
+    QString dumpGame();
+    void reconstructGame(const QString &data);
 
     //
     // snake
@@ -87,8 +87,8 @@ private:
     int universeSize;
     int universeMode;
     int cellMode;
-    //int randomMode;
-    //int lifeTime;
+    // int randomMode;
+    // int lifeTime;
 };
 
 
